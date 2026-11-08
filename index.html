@@ -1,67 +1,646 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Печегор — новая версия</title>
+<title>Печегор — жизнь в деревне</title>
+
 <style>
-*{box-sizing:border-box}body{margin:0;background:#182b20;color:#fff;font-family:Arial,sans-serif}
-header{background:#285b3b;padding:15px;display:flex;justify-content:space-between;gap:10px;position:sticky;top:0}
-main{max-width:780px;margin:auto;padding:12px}.panel{background:#2c5038;padding:15px;border-radius:15px;margin:12px 0}
-button{border:0;border-radius:10px;padding:12px;margin:4px;background:#a5dc80;color:#193522;font-weight:bold;font-size:15px}
-button:active{transform:scale(.97)}#world{height:270px;position:relative;overflow:hidden;border-radius:12px;background:linear-gradient(#91cdec 0 58%,#69a85c 58%)}
-#house{position:absolute;bottom:55px;left:34%;width:140px;height:105px;background:#e8d4ad;border:3px solid #785a43}
-#roof{position:absolute;bottom:158px;left:28%;border-left:85px solid transparent;border-right:85px solid transparent;border-bottom:65px solid #934c3d}
-#door{position:absolute;bottom:0;left:50px;width:35px;height:60px;background:#79513b}
-#window{position:absolute;top:20px;right:15px;width:35px;height:32px;background:#9de7ed;border:3px solid #79513b}
-#hero{position:absolute;bottom:28px;left:48%;font-size:42px;transition:left .2s}
-.tree{position:absolute;bottom:42px;font-size:55px}.stat{margin:12px 0}
-.statline{display:flex;justify-content:space-between}.bar{height:13px;background:#536858;border-radius:20px;overflow:hidden}
-.fill{height:100%;background:#b8e77d;width:80%;transition:width .3s}.actions{display:flex;flex-wrap:wrap}
-#message{min-height:24px;color:#ffe8a0}
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #15271e;
+  --panel: #243d2d;
+  --panel2: #304d39;
+  --green: #a9e68b;
+  --text: #f5f8ed;
+  --muted: #b8c9b5;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #244b32;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 3px 12px #0005;
+}
+
+.logo {
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.money {
+  background: #193b27;
+  color: #b8f18d;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+main {
+  max-width: 850px;
+  margin: auto;
+  padding: 12px;
+}
+
+.panel {
+  background: var(--panel);
+  padding: 17px;
+  border-radius: 18px;
+  margin-bottom: 14px;
+  border: 1px solid #ffffff12;
+  box-shadow: 0 5px 15px #0002;
+}
+
+h2, h3 {
+  margin-top: 0;
+}
+
+h2 {
+  font-size: 21px;
+}
+
+h3 {
+  font-size: 18px;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: -8px;
+}
+
+#world {
+  height: 300px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 15px;
+  background: linear-gradient(
+    #85c9e7 0%,
+    #b9e4ef 55%,
+    #79b968 55%,
+    #49894a 100%
+  );
+  border: 2px solid #ffffff30;
+}
+
+.sun {
+  position: absolute;
+  right: 35px;
+  top: 20px;
+  font-size: 40px;
+}
+
+.cloud {
+  position: absolute;
+  top: 50px;
+  left: 15%;
+  font-size: 35px;
+}
+
+.tree {
+  position: absolute;
+  bottom: 40px;
+  font-size: 55px;
+}
+
+#roof {
+  position: absolute;
+  bottom: 158px;
+  left: 28%;
+  border-left: 85px solid transparent;
+  border-right: 85px solid transparent;
+  border-bottom: 65px solid #984e3e;
+  z-index: 2;
+}
+
+#house {
+  position: absolute;
+  bottom: 55px;
+  left: 34%;
+  width: 140px;
+  height: 105px;
+  background: #e8d4ad;
+  border: 3px solid #785a43;
+  z-index: 1;
+}
+
+#door {
+  position: absolute;
+  bottom: 0;
+  left: 50px;
+  width: 35px;
+  height: 60px;
+  background: #79513b;
+}
+
+#window {
+  position: absolute;
+  top: 20px;
+  right: 15px;
+  width: 35px;
+  height: 32px;
+  background: #9de7ed;
+  border: 3px solid #79513b;
+}
+
+#hero {
+  position: absolute;
+  bottom: 25px;
+  left: 48%;
+  font-size: 42px;
+  transition: left .2s;
+  z-index: 3;
+}
+
+.world-label {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  font-size: 12px;
+  color: white;
+  background: #0005;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.stat {
+  margin: 15px 0;
+}
+
+.statline {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 7px;
+  font-size: 14px;
+}
+
+.bar {
+  height: 13px;
+  background: #526b58;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  width: 80%;
+  background: #a9e68b;
+  border-radius: 20px;
+  transition: width .3s, background .3s;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+button {
+  border: none;
+  border-radius: 12px;
+  padding: 14px 10px;
+  background: var(--green);
+  color: #193522;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: .15s;
+  min-height: 48px;
+}
+
+button:active {
+  transform: scale(.96);
+}
+
+button:hover {
+  filter: brightness(1.08);
+}
+
+button.secondary {
+  background: #42694b;
+  color: white;
+}
+
+button.special {
+  background: #e6b96e;
+  color: #493318;
+}
+
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.product {
+  background: var(--panel2);
+  border-radius: 13px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.product-icon {
+  font-size: 35px;
+}
+
+.product-name {
+  font-weight: bold;
+}
+
+.product-price {
+  color: #c4ed9f;
+  font-size: 13px;
+}
+
+.product button {
+  width: 100%;
+  margin: 0;
+}
+
+#message {
+  min-height: 24px;
+  color: #ffe8a0;
+  line-height: 1.5;
+}
+
+#fairResult {
+  color: #ffe69a;
+  font-weight: bold;
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.footer {
+  text-align: center;
+  color: #8fa693;
+  padding: 20px;
+  font-size: 12px;
+}
+
+@media(max-width: 420px) {
+  .logo {
+    font-size: 17px;
+  }
+
+  .money {
+    font-size: 13px;
+    padding: 9px;
+  }
+
+  .panel {
+    padding: 13px;
+  }
+
+  #world {
+    height: 260px;
+  }
+
+  #house {
+    left: 30%;
+  }
+
+  #roof {
+    left: 24%;
+  }
+
+  button {
+    font-size: 13px;
+    padding: 12px 7px;
+  }
+}
 </style>
 </head>
+
 <body>
-<header><b>🏡 ПЕЧЕГОР</b><b id="money">💰 1250 ₽</b></header>
+
+<header>
+  <div class="logo">🏡 ПЕЧЕГОР</div>
+  <div class="money" id="money">💰 1250 ₽</div>
+</header>
+
 <main>
-<section class="panel"><h2>🏠 Мой дом</h2>
-<div id="world"><div class="tree" style="left:5%">🌳</div><div class="tree" style="right:5%">🌳</div>
-<div id="roof"></div><div id="house"><div id="door"></div><div id="window"></div></div><div id="hero">🧍</div></div>
-<p>Передвигай персонажа кнопками ниже.</p></section>
-<section class="panel"><h3>❤️ Потребности</h3>
-<div class="stat"><div class="statline"><span>🍔 Сытость</span><b id="foodText">80%</b></div><div class="bar"><div class="fill" id="foodBar"></div></div></div>
-<div class="stat"><div class="statline"><span>⚡ Энергия</span><b id="energyText">86%</b></div><div class="bar"><div class="fill" id="energyBar"></div></div></div>
-<div class="stat"><div class="statline"><span>😊 Настроение</span><b id="moodText">90%</b></div><div class="bar"><div class="fill" id="moodBar"></div></div></div>
-</section>
-<section class="panel"><h3>🛒 Магазин</h3><button onclick="buyFood()">🥪 Еда — 80 ₽</button><button onclick="buyToy()">🧸 Игрушка — 150 ₽</button><button onclick="buyPlant()">🌻 Цветок — 100 ₽</button></section>
-<section class="panel"><h3>💼 Работа</h3><button onclick="work()">Работать (+100 ₽)</button></section>
-<section class="panel"><h3>🏡 Дом и отдых</h3><button onclick="sleep()">🛏 Отдохнуть</button><button onclick="garden()">🌱 Ухаживать за садом</button><button onclick="play()">🎮 Играть</button></section>
-<section class="panel"><h3>🚶 Прогулка</h3><button onclick="move(-10)">◀ Влево</button><button onclick="move(10)">Вправо ▶</button></section>
-<section class="panel"><h3>🎪 Бесплатная ярмарка удачи</h3>
-<p>Вход бесплатный. Призы — только игровые рубли, без покупок и обмена на реальные деньги.</p>
-<button onclick="fair()">🎁 Получить приз</button><p id="fairResult"></p></section>
-<section class="panel"><h3>📢 Новости</h3><p id="message">Добро пожаловать в Печегор!</p></section>
+
+<!-- ИГРОВОЙ МИР -->
+<div class="panel">
+  <div class="section-title">
+    <h2>🏠 Мой дом</h2>
+    <span>Моя деревня</span>
+  </div>
+
+  <div id="world">
+    <div class="sun">☀️</div>
+    <div class="cloud">☁️</div>
+    <div class="tree" style="left:5%">🌳</div>
+    <div class="tree" style="right:5%">🌳</div>
+
+    <div id="roof"></div>
+
+    <div id="house">
+      <div id="door"></div>
+      <div id="window"></div>
+    </div>
+
+    <div id="hero">🧍</div>
+
+    <div class="world-label">📍 Твой участок</div>
+  </div>
+</div>
+
+<!-- СОСТОЯНИЕ -->
+<div class="panel">
+  <h3>❤️ Состояние персонажа</h3>
+
+  <div class="stat">
+    <div class="statline">
+      <span>🍔 Сытость</span>
+      <b id="foodText">80%</b>
+    </div>
+    <div class="bar">
+      <div class="fill" id="foodBar"></div>
+    </div>
+  </div>
+
+  <div class="stat">
+    <div class="statline">
+      <span>⚡ Энергия</span>
+      <b id="energyText">86%</b>
+    </div>
+    <div class="bar">
+      <div class="fill" id="energyBar"></div>
+    </div>
+  </div>
+
+  <div class="stat">
+    <div class="statline">
+      <span>😊 Настроение</span>
+      <b id="moodText">90%</b>
+    </div>
+    <div class="bar">
+      <div class="fill" id="moodBar"></div>
+    </div>
+  </div>
+</div>
+
+<!-- МАГАЗИН -->
+<div class="panel">
+  <h3>🛒 Магазин</h3>
+  <p class="subtitle">Покупай полезные вещи для жизни</p>
+
+  <div class="actions">
+
+    <div class="product">
+      <div class="product-icon">🥪</div>
+      <div class="product-name">Продукты</div>
+      <div class="product-price">80 ₽</div>
+      <button onclick="buyFood()">Купить</button>
+    </div>
+
+    <div class="product">
+      <div class="product-icon">🧸</div>
+      <div class="product-name">Игрушка</div>
+      <div class="product-price">150 ₽</div>
+      <button onclick="buyToy()">Купить</button>
+    </div>
+
+    <div class="product">
+      <div class="product-icon">🌻</div>
+      <div class="product-name">Цветок</div>
+      <div class="product-price">100 ₽</div>
+      <button onclick="buyPlant()">Купить</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- РАБОТА -->
+<div class="panel">
+  <h3>💼 Работа</h3>
+  <p class="subtitle">Зарабатывай игровые деньги</p>
+
+  <button class="special" style="width:100%"
+          onclick="work()">
+    💰 Работать (+100 ₽)
+  </button>
+</div>
+
+<!-- ДОМ -->
+<div class="panel">
+  <h3>🏡 Дом и отдых</h3>
+
+  <div class="actions">
+    <button onclick="sleep()">🛏 Спать</button>
+    <button onclick="garden()">🌱 Сад</button>
+    <button onclick="play()">🎮 Играть</button>
+  </div>
+</div>
+
+<!-- ПРОГУЛКА -->
+<div class="panel">
+  <h3>🚶 Прогулка</h3>
+  <p class="subtitle">Передвигай персонажа по участку</p>
+
+  <div class="actions">
+    <button class="secondary" onclick="move(-10)">
+      ◀ Влево
+    </button>
+
+    <button class="secondary" onclick="move(10)">
+      Вправо ▶
+    </button>
+  </div>
+</div>
+
+<!-- ЯРМАРКА -->
+<div class="panel">
+  <h3>🎪 Ярмарка удачи</h3>
+  <p class="subtitle">
+    Бесплатные игровые призы!
+  </p>
+
+  <button class="special"
+          style="width:100%"
+          onclick="fair()">
+    🎁 Получить приз
+  </button>
+
+  <p id="fairResult"></p>
+</div>
+
+<!-- НОВОСТИ -->
+<div class="panel">
+  <h3>📢 Новости Печегора</h3>
+  <p id="message">
+    🌳 Добро пожаловать в Печегор!
+  </p>
+</div>
+
+<div class="footer">
+  🏡 ПЕЧЕГОР · Твоя маленькая жизнь в деревне
+</div>
+
 </main>
+
 <script>
-let money=1250,food=80,energy=86,mood=90,position=48;
-function update(){
- document.getElementById("money").textContent="💰 "+money+" игровых ₽";
- for(const [name,value] of [["food",food],["energy",energy],["mood",mood]]){
-  document.getElementById(name+"Bar").style.width=value+"%";
-  document.getElementById(name+"Text").textContent=value+"%";
- }
+let money = 1250;
+let food = 80;
+let energy = 86;
+let mood = 90;
+let position = 48;
+
+function update() {
+  document.getElementById("money").textContent =
+    "💰 " + money + " ₽";
+
+  for (let [name, value] of [
+    ["food", food],
+    ["energy", energy],
+    ["mood", mood]
+  ]) {
+    document.getElementById(name + "Bar").style.width =
+      value + "%";
+
+    document.getElementById(name + "Text").textContent =
+      value + "%";
+
+    let color = value < 25 ? "#ef7770" :
+                value < 50 ? "#eac66e" : "#a9e68b";
+
+    document.getElementById(name + "Bar").style.background =
+      color;
+  }
 }
-function say(t){document.getElementById("message").textContent=t}
-function buyFood(){if(money<80)return say("Не хватает игровых рублей!");money-=80;food=Math.min(100,food+35);update();say("🥪 Продукты куплены!")}
-function buyToy(){if(money<150)return say("Не хватает игровых рублей!");money-=150;mood=Math.min(100,mood+20);update();say("🧸 Игрушка куплена!")}
-function buyPlant(){if(money<100)return say("Не хватает игровых рублей!");money-=100;mood=Math.min(100,mood+12);update();say("🌻 Цветок украсил двор!")}
-function work(){money+=100;energy=Math.max(0,energy-10);food=Math.max(0,food-5);update();say("💼 Ты заработал 100 игровых рублей!")}
-function sleep(){energy=Math.min(100,energy+35);mood=Math.min(100,mood+10);update();say("🛏 Ты отдохнул!")}
-function garden(){mood=Math.min(100,mood+15);energy=Math.max(0,energy-5);update();say("🌱 Ты ухаживал за садом!")}
-function play(){mood=Math.min(100,mood+18);energy=Math.max(0,energy-7);update();say("🎮 Ты весело провёл время!")}
-function move(n){position=Math.max(1,Math.min(90,position+n));document.getElementById("hero").style.left=position+"%"}
-function fair(){let r=Math.random(),prize=r<.40?250:r<.65?500:r<.80?1000:150;money+=prize;mood=Math.min(100,mood+5);update();document.getElementById("fairResult").textContent="🎉 Твой приз: "+prize+" игровых рублей!";say("Поздравляем с бесплатным призом!")}
+
+function say(text) {
+  document.getElementById("message").textContent = text;
+}
+
+function buyFood() {
+  if (money < 80) return say("❌ Не хватает денег!");
+
+  money -= 80;
+  food = Math.min(100, food + 35);
+
+  update();
+  say("🥪 Ты купил продукты!");
+}
+
+function buyToy() {
+  if (money < 150) return say("❌ Не хватает денег!");
+
+  money -= 150;
+  mood = Math.min(100, mood + 20);
+
+  update();
+  say("🧸 Новая игрушка куплена!");
+}
+
+function buyPlant() {
+  if (money < 100) return say("❌ Не хватает денег!");
+
+  money -= 100;
+  mood = Math.min(100, mood + 12);
+
+  update();
+  say("🌻 Цветок украшает твой двор!");
+}
+
+function work() {
+  if (energy < 10) {
+    return say("😴 Слишком мало энергии для работы!");
+  }
+
+  money += 100;
+  energy = Math.max(0, energy - 10);
+  food = Math.max(0, food - 5);
+
+  update();
+  say("💼 Ты заработал 100 игровых рублей!");
+}
+
+function sleep() {
+  energy = Math.min(100, energy + 35);
+  mood = Math.min(100, mood + 10);
+
+  update();
+  say("🛏 Ты хорошо отдохнул!");
+}
+
+function garden() {
+  if (energy < 5) return say("😴 Нужно отдохнуть!");
+
+  mood = Math.min(100, mood + 15);
+  energy = Math.max(0, energy - 5);
+
+  update();
+  say("🌱 Сад стал красивее!");
+}
+
+function play() {
+  if (energy < 7) return say("😴 Нужно отдохнуть!");
+
+  mood = Math.min(100, mood + 18);
+  energy = Math.max(0, energy - 7);
+
+  update();
+  say("🎮 Ты весело провёл время!");
+}
+
+function move(n) {
+  position = Math.max(1, Math.min(90, position + n));
+
+  document.getElementById("hero").style.left =
+    position + "%";
+}
+
+function fair() {
+  let r = Math.random();
+  let prize;
+
+  if (r < 0.40) prize = 250;
+  else if (r < 0.65) prize = 500;
+  else if (r < 0.80) prize = 1000;
+  else prize = 150;
+
+  money += prize;
+  mood = Math.min(100, mood + 5);
+
+  update();
+
+  document.getElementById("fairResult").textContent =
+    "🎉 Твой приз: " + prize + " игровых рублей!";
+
+  say("🎁 Поздравляем с призом!");
+}
+
 update();
 </script>
+
 </body>
 </html>
