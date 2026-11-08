@@ -3,337 +3,65 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Печегор — жизнь в деревне</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Печегор 3.0</title>
 
 <style>
-* {
-  box-sizing: border-box;
+*{box-sizing:border-box}
+body{
+ margin:0;background:#17291e;color:white;
+ font-family:Arial,sans-serif;
 }
-
-:root {
-  --bg: #15271e;
-  --panel: #243d2d;
-  --panel2: #304d39;
-  --green: #a9e68b;
-  --text: #f5f8ed;
-  --muted: #b8c9b5;
+header{
+ position:sticky;top:0;z-index:5;
+ display:flex;justify-content:space-between;
+ align-items:center;padding:14px;
+ background:#285b3b;
 }
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Arial, sans-serif;
+header b{font-size:18px}
+.money{
+ background:#193b27;padding:10px;
+ border-radius:10px;color:#c5f49d;font-weight:bold
 }
-
-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: #244b32;
-  padding: 14px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 3px 12px #0005;
+main{max-width:950px;margin:auto;padding:12px}
+.panel{
+ background:#294735;padding:14px;
+ border-radius:15px;margin-bottom:13px
 }
-
-.logo {
-  font-size: 21px;
-  font-weight: 900;
-  letter-spacing: 1px;
+canvas{
+ width:100%;height:auto;display:block;
+ border-radius:12px;border:3px solid #648c58;
+ background:#80b96b;touch-action:none
 }
-
-.money {
-  background: #193b27;
-  color: #b8f18d;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-weight: bold;
+h3{margin-top:0}
+.info{color:#c2d5c2;font-size:13px}
+#location{color:#c9efa8;font-weight:bold}
+#message{color:#ffe9a2;min-height:25px}
+.controls{
+ display:grid;grid-template-columns:repeat(3,60px);
+ justify-content:center;gap:7px;margin:15px
 }
-
-main {
-  max-width: 850px;
-  margin: auto;
-  padding: 12px;
+button{
+ border:0;border-radius:11px;padding:13px;
+ background:#a9e68b;color:#193522;
+ font-size:15px;font-weight:bold;cursor:pointer
 }
-
-.panel {
-  background: var(--panel);
-  padding: 17px;
-  border-radius: 18px;
-  margin-bottom: 14px;
-  border: 1px solid #ffffff12;
-  box-shadow: 0 5px 15px #0002;
+.controls button{height:55px;font-size:22px}
+.empty{visibility:hidden}
+.action{width:100%;background:#e8bd70}
+#interact{background:#a9e68b}
+.shop-items{
+ display:grid;grid-template-columns:repeat(2,1fr);gap:9px
 }
-
-h2, h3 {
-  margin-top: 0;
+.item{
+ background:#385c43;padding:12px;
+ border-radius:12px;text-align:center
 }
-
-h2 {
-  font-size: 21px;
-}
-
-h3 {
-  font-size: 18px;
-}
-
-.subtitle {
-  color: var(--muted);
-  font-size: 13px;
-  margin-top: -8px;
-}
-
-#world {
-  height: 300px;
-  position: relative;
-  overflow: hidden;
-  border-radius: 15px;
-  background: linear-gradient(
-    #85c9e7 0%,
-    #b9e4ef 55%,
-    #79b968 55%,
-    #49894a 100%
-  );
-  border: 2px solid #ffffff30;
-}
-
-.sun {
-  position: absolute;
-  right: 35px;
-  top: 20px;
-  font-size: 40px;
-}
-
-.cloud {
-  position: absolute;
-  top: 50px;
-  left: 15%;
-  font-size: 35px;
-}
-
-.tree {
-  position: absolute;
-  bottom: 40px;
-  font-size: 55px;
-}
-
-#roof {
-  position: absolute;
-  bottom: 158px;
-  left: 28%;
-  border-left: 85px solid transparent;
-  border-right: 85px solid transparent;
-  border-bottom: 65px solid #984e3e;
-  z-index: 2;
-}
-
-#house {
-  position: absolute;
-  bottom: 55px;
-  left: 34%;
-  width: 140px;
-  height: 105px;
-  background: #e8d4ad;
-  border: 3px solid #785a43;
-  z-index: 1;
-}
-
-#door {
-  position: absolute;
-  bottom: 0;
-  left: 50px;
-  width: 35px;
-  height: 60px;
-  background: #79513b;
-}
-
-#window {
-  position: absolute;
-  top: 20px;
-  right: 15px;
-  width: 35px;
-  height: 32px;
-  background: #9de7ed;
-  border: 3px solid #79513b;
-}
-
-#hero {
-  position: absolute;
-  bottom: 25px;
-  left: 48%;
-  font-size: 42px;
-  transition: left .2s;
-  z-index: 3;
-}
-
-.world-label {
-  position: absolute;
-  bottom: 8px;
-  left: 10px;
-  font-size: 12px;
-  color: white;
-  background: #0005;
-  padding: 6px 10px;
-  border-radius: 8px;
-}
-
-.stat {
-  margin: 15px 0;
-}
-
-.statline {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 7px;
-  font-size: 14px;
-}
-
-.bar {
-  height: 13px;
-  background: #526b58;
-  border-radius: 20px;
-  overflow: hidden;
-}
-
-.fill {
-  height: 100%;
-  width: 80%;
-  background: #a9e68b;
-  border-radius: 20px;
-  transition: width .3s, background .3s;
-}
-
-.actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 9px;
-}
-
-button {
-  border: none;
-  border-radius: 12px;
-  padding: 14px 10px;
-  background: var(--green);
-  color: #193522;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: .15s;
-  min-height: 48px;
-}
-
-button:active {
-  transform: scale(.96);
-}
-
-button:hover {
-  filter: brightness(1.08);
-}
-
-button.secondary {
-  background: #42694b;
-  color: white;
-}
-
-button.special {
-  background: #e6b96e;
-  color: #493318;
-}
-
-button:disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-
-.product {
-  background: var(--panel2);
-  border-radius: 13px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-
-.product-icon {
-  font-size: 35px;
-}
-
-.product-name {
-  font-weight: bold;
-}
-
-.product-price {
-  color: #c4ed9f;
-  font-size: 13px;
-}
-
-.product button {
-  width: 100%;
-  margin: 0;
-}
-
-#message {
-  min-height: 24px;
-  color: #ffe8a0;
-  line-height: 1.5;
-}
-
-#fairResult {
-  color: #ffe69a;
-  font-weight: bold;
-}
-
-.section-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.section-title span {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.footer {
-  text-align: center;
-  color: #8fa693;
-  padding: 20px;
-  font-size: 12px;
-}
-
-@media(max-width: 420px) {
-  .logo {
-    font-size: 17px;
-  }
-
-  .money {
-    font-size: 13px;
-    padding: 9px;
-  }
-
-  .panel {
-    padding: 13px;
-  }
-
-  #world {
-    height: 260px;
-  }
-
-  #house {
-    left: 30%;
-  }
-
-  #roof {
-    left: 24%;
-  }
-
-  button {
-    font-size: 13px;
-    padding: 12px 7px;
-  }
+.item button{width:100%;margin-top:8px}
+.hidden{display:none}
+@media(max-width:450px){
+ header b{font-size:15px}
+ .money{font-size:13px}
 }
 </style>
 </head>
@@ -341,305 +69,560 @@ button:disabled {
 <body>
 
 <header>
-  <div class="logo">🏡 ПЕЧЕГОР</div>
-  <div class="money" id="money">💰 1250 ₽</div>
+ <b>🏡 ПЕЧЕГОР 3.0</b>
+ <div class="money" id="money">💰 1250 ₽</div>
 </header>
 
 <main>
 
-<!-- ИГРОВОЙ МИР -->
 <div class="panel">
-  <div class="section-title">
-    <h2>🏠 Мой дом</h2>
-    <span>Моя деревня</span>
-  </div>
-
-  <div id="world">
-    <div class="sun">☀️</div>
-    <div class="cloud">☁️</div>
-    <div class="tree" style="left:5%">🌳</div>
-    <div class="tree" style="right:5%">🌳</div>
-
-    <div id="roof"></div>
-
-    <div id="house">
-      <div id="door"></div>
-      <div id="window"></div>
-    </div>
-
-    <div id="hero">🧍</div>
-
-    <div class="world-label">📍 Твой участок</div>
-  </div>
+ <h3 id="sceneTitle">🗺️ Деревня Печегор</h3>
+ <canvas id="game" width="900" height="600"></canvas>
+ <p id="location">📍 Улицы Печегора</p>
+ <p class="info" id="hint">
+ Исследуй деревню. Подойди к двери и нажми E.
+ </p>
 </div>
 
-<!-- СОСТОЯНИЕ -->
 <div class="panel">
-  <h3>❤️ Состояние персонажа</h3>
+ <h3>🎮 Управление</h3>
+ <div class="controls">
+  <button class="empty"> </button>
+  <button id="up">⬆️</button>
+  <button class="empty"> </button>
+  <button id="left">⬅️</button>
+  <button id="down">⬇️</button>
+  <button id="right">➡️</button>
+ </div>
+ <button class="action" id="interact" onclick="interact()">
+  🚪 Взаимодействовать
+ </button>
+ <p class="info">Клавиши WASD или стрелки. E — взаимодействие.</p>
+</div>
 
-  <div class="stat">
-    <div class="statline">
-      <span>🍔 Сытость</span>
-      <b id="foodText">80%</b>
-    </div>
-    <div class="bar">
-      <div class="fill" id="foodBar"></div>
-    </div>
+<div class="panel">
+ <h3>👤 Персонаж</h3>
+ <p>❤️ Сытость: <b id="food">80%</b></p>
+ <p>⚡ Энергия: <b id="energy">86%</b></p>
+ <p>😊 Настроение: <b id="mood">90%</b></p>
+</div>
+
+<div class="panel hidden" id="shopPanel">
+ <h3>🏪 Магазин продуктов</h3>
+ <p>👨‍🌾 Продавец: Добро пожаловать! Что желаете?</p>
+ <div class="shop-items">
+  <div class="item">
+   🥪 <b>Бутерброд</b>
+   <p>80 ₽ · +30 сытости</p>
+   <button onclick="buy('food')">Купить</button>
   </div>
-
-  <div class="stat">
-    <div class="statline">
-      <span>⚡ Энергия</span>
-      <b id="energyText">86%</b>
-    </div>
-    <div class="bar">
-      <div class="fill" id="energyBar"></div>
-    </div>
+  <div class="item">
+   🍎 <b>Яблоки</b>
+   <p>40 ₽ · +15 сытости</p>
+   <button onclick="buy('apple')">Купить</button>
   </div>
-
-  <div class="stat">
-    <div class="statline">
-      <span>😊 Настроение</span>
-      <b id="moodText">90%</b>
-    </div>
-    <div class="bar">
-      <div class="fill" id="moodBar"></div>
-    </div>
+  <div class="item">
+   🧸 <b>Игрушка</b>
+   <p>150 ₽ · +20 настроения</p>
+   <button onclick="buy('toy')">Купить</button>
   </div>
-</div>
-
-<!-- МАГАЗИН -->
-<div class="panel">
-  <h3>🛒 Магазин</h3>
-  <p class="subtitle">Покупай полезные вещи для жизни</p>
-
-  <div class="actions">
-
-    <div class="product">
-      <div class="product-icon">🥪</div>
-      <div class="product-name">Продукты</div>
-      <div class="product-price">80 ₽</div>
-      <button onclick="buyFood()">Купить</button>
-    </div>
-
-    <div class="product">
-      <div class="product-icon">🧸</div>
-      <div class="product-name">Игрушка</div>
-      <div class="product-price">150 ₽</div>
-      <button onclick="buyToy()">Купить</button>
-    </div>
-
-    <div class="product">
-      <div class="product-icon">🌻</div>
-      <div class="product-name">Цветок</div>
-      <div class="product-price">100 ₽</div>
-      <button onclick="buyPlant()">Купить</button>
-    </div>
-
+  <div class="item">
+   🌻 <b>Цветок</b>
+   <p>100 ₽ · +12 настроения</p>
+   <button onclick="buy('plant')">Купить</button>
   </div>
+ </div>
 </div>
 
-<!-- РАБОТА -->
+<div class="panel hidden" id="homePanel">
+ <h3>🏠 Твой дом</h3>
+ <p>Здесь можно отдохнуть и восстановить силы.</p>
+ <button class="action" onclick="rest()">🛏 Отдохнуть</button>
+</div>
+
+<div class="panel hidden" id="townPanel">
+ <h3>🏛️ Ратуша</h3>
+ <p>Мэр: Здравствуй! У нас есть небольшая работа.</p>
+ <button class="action" onclick="quest()">
+  📦 Выполнить поручение (+150 ₽)
+ </button>
+</div>
+
 <div class="panel">
-  <h3>💼 Работа</h3>
-  <p class="subtitle">Зарабатывай игровые деньги</p>
-
-  <button class="special" style="width:100%"
-          onclick="work()">
-    💰 Работать (+100 ₽)
-  </button>
-</div>
-
-<!-- ДОМ -->
-<div class="panel">
-  <h3>🏡 Дом и отдых</h3>
-
-  <div class="actions">
-    <button onclick="sleep()">🛏 Спать</button>
-    <button onclick="garden()">🌱 Сад</button>
-    <button onclick="play()">🎮 Играть</button>
-  </div>
-</div>
-
-<!-- ПРОГУЛКА -->
-<div class="panel">
-  <h3>🚶 Прогулка</h3>
-  <p class="subtitle">Передвигай персонажа по участку</p>
-
-  <div class="actions">
-    <button class="secondary" onclick="move(-10)">
-      ◀ Влево
-    </button>
-
-    <button class="secondary" onclick="move(10)">
-      Вправо ▶
-    </button>
-  </div>
-</div>
-
-<!-- ЯРМАРКА -->
-<div class="panel">
-  <h3>🎪 Ярмарка удачи</h3>
-  <p class="subtitle">
-    Бесплатные игровые призы!
-  </p>
-
-  <button class="special"
-          style="width:100%"
-          onclick="fair()">
-    🎁 Получить приз
-  </button>
-
-  <p id="fairResult"></p>
-</div>
-
-<!-- НОВОСТИ -->
-<div class="panel">
-  <h3>📢 Новости Печегора</h3>
-  <p id="message">
-    🌳 Добро пожаловать в Печегор!
-  </p>
-</div>
-
-<div class="footer">
-  🏡 ПЕЧЕГОР · Твоя маленькая жизнь в деревне
+ <h3>📢 Новости</h3>
+ <p id="message">Добро пожаловать в Печегор!</p>
 </div>
 
 </main>
 
 <script>
-let money = 1250;
-let food = 80;
-let energy = 86;
-let mood = 90;
-let position = 48;
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
 
-function update() {
-  document.getElementById("money").textContent =
-    "💰 " + money + " ₽";
+const W=1800,H=1300;
 
-  for (let [name, value] of [
-    ["food", food],
-    ["energy", energy],
-    ["mood", mood]
-  ]) {
-    document.getElementById(name + "Bar").style.width =
-      value + "%";
+let money=1250;
+let food=80,energy=86,mood=90;
 
-    document.getElementById(name + "Text").textContent =
-      value + "%";
+let scene="world";
+let currentBuilding=null;
+let questDone=false;
 
-    let color = value < 25 ? "#ef7770" :
-                value < 50 ? "#eac66e" : "#a9e68b";
+const player={
+ x:420,y:420,speed:3
+};
 
-    document.getElementById(name + "Bar").style.background =
-      color;
+const camera={x:0,y:0};
+const keys={};
+
+const buildings=[
+ {id:"home",name:"Твой дом",x:350,y:300,w:160,h:120,doorX:430,doorY:435,icon:"🏠"},
+ {id:"shop",name:"Магазин",x:1050,y:280,w:150,h:120,doorX:1125,doorY:415,icon:"🏪"},
+ {id:"town",name:"Ратуша",x:1250,y:1000,w:170,h:120,doorX:1335,doorY:1125,icon:"🏛️"}
+];
+
+const trees=[
+ [100,100],[200,250],[700,150],[850,350],
+ [1500,180],[1650,400],[900,900],
+ [200,1100],[750,1150],[1550,1150],
+ [1700,850],[1000,600],[650,700]
+];
+
+function say(t){
+ document.getElementById("message").textContent=t;
+}
+
+function stats(){
+ document.getElementById("money").textContent="💰 "+money+" ₽";
+ document.getElementById("food").textContent=food+"%";
+ document.getElementById("energy").textContent=energy+"%";
+ document.getElementById("mood").textContent=mood+"%";
+}
+
+function showPanel(id){
+ ["shopPanel","homePanel","townPanel"].forEach(x=>{
+  document.getElementById(x).classList.add("hidden");
+ });
+ if(id)document.getElementById(id+"Panel").classList.remove("hidden");
+}
+
+function enter(b){
+ scene="inside";
+ currentBuilding=b;
+ keys.ArrowUp=false;
+ keys.ArrowDown=false;
+ keys.ArrowLeft=false;
+ keys.ArrowRight=false;
+
+ player.x=450;
+ player.y=490;
+
+ document.getElementById("sceneTitle").textContent=
+ "🚪 "+b.name;
+ document.getElementById("hint").textContent=
+ "Исследуй помещение. Подойди к выходу и нажми E.";
+
+ showPanel(b.id==="shop"?"shop":b.id==="home"?"home":"town");
+ say("Ты вошёл: "+b.name);
+}
+
+function exit(){
+ scene="world";
+ currentBuilding=null;
+
+ if(currentBuilding===null) {
+  // Возвращаем персонажа к соответствующему зданию
+  const b=buildings.find(x=>player.exitId===x.id);
+  if(b){
+   player.x=b.doorX;
+   player.y=b.doorY+35;
   }
+ }
+
+ document.getElementById("sceneTitle").textContent="🗺️ Деревня Печегор";
+ document.getElementById("hint").textContent=
+ "Исследуй деревню. Подойди к двери и нажми E.";
+
+ showPanel(null);
+ say("Ты вышел на улицу!");
 }
 
-function say(text) {
-  document.getElementById("message").textContent = text;
+function enterBuilding(b){
+ player.exitId=b.id;
+ enter(b);
 }
 
-function buyFood() {
-  if (money < 80) return say("❌ Не хватает денег!");
-
-  money -= 80;
-  food = Math.min(100, food + 35);
-
-  update();
-  say("🥪 Ты купил продукты!");
+function road(x,y,w,h){
+ ctx.fillStyle="#c8b58b";
+ ctx.fillRect(x,y,w,h);
 }
 
-function buyToy() {
-  if (money < 150) return say("❌ Не хватает денег!");
+function drawBuilding(b){
+ ctx.fillStyle="#0003";
+ ctx.fillRect(b.x+7,b.y+8,b.w,b.h);
 
-  money -= 150;
-  mood = Math.min(100, mood + 20);
+ ctx.fillStyle=b.id==="home"?"#e5cba2":
+ b.id==="shop"?"#e7c47e":"#d3c4a4";
 
-  update();
-  say("🧸 Новая игрушка куплена!");
+ ctx.fillRect(b.x,b.y,b.w,b.h);
+
+ ctx.strokeStyle="#684b35";
+ ctx.lineWidth=5;
+ ctx.strokeRect(b.x,b.y,b.w,b.h);
+
+ ctx.fillStyle="#974d3d";
+ ctx.beginPath();
+ ctx.moveTo(b.x-15,b.y);
+ ctx.lineTo(b.x+b.w/2,b.y-65);
+ ctx.lineTo(b.x+b.w+15,b.y);
+ ctx.closePath();
+ ctx.fill();
+
+ ctx.font="44px Arial";
+ ctx.textAlign="center";
+ ctx.fillText(b.icon,b.x+b.w/2,b.y+b.h/2+15);
+
+ ctx.font="bold 18px Arial";
+ ctx.fillStyle="#183321";
+ ctx.fillText(b.name,b.x+b.w/2,b.y+b.h+25);
+
+ // Дверь
+ ctx.fillStyle="#67412f";
+ ctx.fillRect(b.doorX-17,b.doorY-23,34,46);
 }
 
-function buyPlant() {
-  if (money < 100) return say("❌ Не хватает денег!");
+function drawWorld(){
+ ctx.fillStyle="#80b96b";
+ ctx.fillRect(0,0,W,H);
 
-  money -= 100;
-  mood = Math.min(100, mood + 12);
+ ctx.fillStyle="#73ad61";
+ for(let i=0;i<160;i++){
+  ctx.fillRect((i*137)%W,(i*193)%H,5,5);
+ }
 
-  update();
-  say("🌻 Цветок украшает твой двор!");
+ road(0,480,W,95);
+ road(700,0,90,H);
+ road(250,700,1100,75);
+ road(1100,700,90,600);
+
+ // Озеро
+ ctx.fillStyle="#56b7d6";
+ ctx.beginPath();
+ ctx.ellipse(1550,650,145,95,0,0,Math.PI*2);
+ ctx.fill();
+
+ ctx.strokeStyle="#a5e4ed";
+ ctx.lineWidth=5;
+ ctx.stroke();
+
+ for(const [x,y] of trees){
+  ctx.font="48px Arial";
+  ctx.fillText("🌳",x,y);
+ }
+
+ buildings.forEach(drawBuilding);
+
+ drawPlayer();
 }
 
-function work() {
-  if (energy < 10) {
-    return say("😴 Слишком мало энергии для работы!");
+function drawPlayer(){
+ ctx.font="43px Arial";
+ ctx.textAlign="center";
+ ctx.fillText("🧍",player.x,player.y+10);
+}
+
+function drawInside(){
+ const b=currentBuilding;
+
+ ctx.fillStyle="#c49b6b";
+ ctx.fillRect(0,0,900,600);
+
+ // Пол
+ ctx.fillStyle="#b98451";
+ ctx.fillRect(0,0,900,600);
+
+ // Стены
+ ctx.fillStyle="#e6d4ad";
+ ctx.fillRect(0,0,900,70);
+ ctx.fillRect(0,0,45,600);
+ ctx.fillRect(855,0,45,600);
+ ctx.fillRect(0,555,900,45);
+
+ // Окна
+ ctx.fillStyle="#83d4e5";
+ ctx.fillRect(100,90,130,100);
+ ctx.fillRect(670,90,130,100);
+
+ ctx.strokeStyle="#79513b";
+ ctx.lineWidth=8;
+ ctx.strokeRect(100,90,130,100);
+ ctx.strokeRect(670,90,130,100);
+
+ ctx.strokeStyle="#79513b";
+ ctx.lineWidth=5;
+ ctx.beginPath();
+ ctx.moveTo(165,90);
+ ctx.lineTo(165,190);
+ ctx.moveTo(100,140);
+ ctx.lineTo(230,140);
+ ctx.moveTo(735,90);
+ ctx.lineTo(735,190);
+ ctx.moveTo(670,140);
+ ctx.lineTo(800,140);
+ ctx.stroke();
+
+ if(b.id==="home"){
+  ctx.font="55px Arial";
+  ctx.fillText("🛏️",250,340);
+  ctx.fillText("🛋️",650,350);
+  ctx.fillText("🪴",120,420);
+  ctx.fillText("🪑",750,430);
+  ctx.font="bold 28px Arial";
+  ctx.fillStyle="#51351f";
+  ctx.fillText("Мой уютный дом",450,260);
+ }
+
+ if(b.id==="shop"){
+  ctx.fillStyle="#79533a";
+  ctx.fillRect(100,310,700,35);
+  ctx.font="48px Arial";
+  ctx.fillText("🥪",220,290);
+  ctx.fillText("🍎",350,290);
+  ctx.fillText("🧸",500,290);
+  ctx.fillText("🌻",650,290);
+  ctx.font="55px Arial";
+  ctx.fillText("👨‍🌾",450,440);
+  ctx.font="bold 26px Arial";
+  ctx.fillStyle="#51351f";
+  ctx.fillText("МАГАЗИН",450,235);
+ }
+
+ if(b.id==="town"){
+  ctx.font="65px Arial";
+  ctx.fillText("🏛️",450,340);
+  ctx.font="bold 28px Arial";
+  ctx.fillStyle="#51351f";
+  ctx.fillText("Ратуша Печегора",450,235);
+  ctx.font="50px Arial";
+  ctx.fillText("👨‍💼",450,440);
+ }
+
+ // Выход
+ ctx.fillStyle="#67412f";
+ ctx.fillRect(390,535,120,65);
+ ctx.fillStyle="white";
+ ctx.font="17px Arial";
+ ctx.fillText("ВЫХОД",450,520);
+
+ drawPlayer();
+}
+
+function updateCamera(){
+ camera.x=Math.max(0,Math.min(W-900,player.x-450));
+ camera.y=Math.max(0,Math.min(H-600,player.y-300));
+}
+
+function collides(x,y){
+ for(const b of buildings){
+  // Оставляем проход в дверях
+  const nearDoor=Math.abs(x-b.doorX)<30 &&
+                  Math.abs(y-b.doorY)<35;
+
+  if(!nearDoor &&
+    x+13>b.x-12 && x-13<b.x+b.w+12 &&
+    y+10>b.y-12 && y-10<b.y+b.h+12)
+    return true;
+ }
+
+ const dx=(x-1550)/145;
+ const dy=(y-650)/95;
+ if(dx*dx+dy*dy<1)return true;
+
+ return false;
+}
+
+function move(){
+ let dx=0,dy=0;
+
+ if(keys.ArrowUp||keys.w)dy--;
+ if(keys.ArrowDown||keys.s)dy++;
+ if(keys.ArrowLeft||keys.a)dx--;
+ if(keys.ArrowRight||keys.d)dx++;
+
+ if(!dx&&!dy)return;
+
+ let len=Math.hypot(dx,dy);
+ dx=dx/len*player.speed;
+ dy=dy/len*player.speed;
+
+ if(scene==="world"){
+  if(!collides(player.x+dx,player.y))player.x+=dx;
+  if(!collides(player.x,player.y+dy))player.y+=dy;
+
+  player.x=Math.max(15,Math.min(W-15,player.x));
+  player.y=Math.max(15,Math.min(H-15,player.y));
+ }else{
+  player.x=Math.max(60,Math.min(840,player.x+dx));
+  player.y=Math.max(100,Math.min(530,player.y+dy));
+ }
+}
+
+function interact(){
+ if(scene==="inside"){
+  if(player.y>465){
+   exit();
+  }else if(currentBuilding.id==="home" &&
+           player.x>150&&player.x<350&&player.y>270){
+   rest();
   }
+  return;
+ }
 
-  money += 100;
-  energy = Math.max(0, energy - 10);
-  food = Math.max(0, food - 5);
+ let b=buildings.find(b=>
+  Math.hypot(player.x-b.doorX,player.y-b.doorY)<85
+ );
 
-  update();
-  say("💼 Ты заработал 100 игровых рублей!");
+ if(b){
+  enterBuilding(b);
+ }else{
+  const lake=Math.hypot(
+   (player.x-1550)/145,
+   (player.y-650)/95
+  );
+
+  if(lake<1.5){
+   mood=Math.min(100,mood+5);
+   stats();
+   say("🌊 Ты любуешься озером!");
+  }else{
+   say("🚶 Здесь пока нечего исследовать.");
+  }
+ }
 }
 
-function sleep() {
-  energy = Math.min(100, energy + 35);
-  mood = Math.min(100, mood + 10);
+function buy(type){
+ let prices={
+  food:80,apple:40,toy:150,plant:100
+ };
 
-  update();
-  say("🛏 Ты хорошо отдохнул!");
+ let price=prices[type];
+
+ if(money<price){
+  say("❌ Не хватает игровых рублей!");
+  return;
+ }
+
+ money-=price;
+
+ if(type==="food")food=Math.min(100,food+30);
+ if(type==="apple")food=Math.min(100,food+15);
+ if(type==="toy")mood=Math.min(100,mood+20);
+ if(type==="plant")mood=Math.min(100,mood+12);
+
+ stats();
+ say("🛍️ Покупка совершена!");
 }
 
-function garden() {
-  if (energy < 5) return say("😴 Нужно отдохнуть!");
+function rest(){
+ if(scene!=="inside"||currentBuilding.id!=="home"){
+  say("Нужно находиться дома!");
+  return;
+ }
 
-  mood = Math.min(100, mood + 15);
-  energy = Math.max(0, energy - 5);
-
-  update();
-  say("🌱 Сад стал красивее!");
+ energy=Math.min(100,energy+40);
+ mood=Math.min(100,mood+10);
+ stats();
+ say("🛏️ Ты хорошо отдохнул!");
 }
 
-function play() {
-  if (energy < 7) return say("😴 Нужно отдохнуть!");
+function quest(){
+ if(scene!=="inside"||currentBuilding.id!=="town")return;
 
-  mood = Math.min(100, mood + 18);
-  energy = Math.max(0, energy - 7);
+ if(questDone){
+  say("📦 Сегодня поручение уже выполнено!");
+  return;
+ }
 
-  update();
-  say("🎮 Ты весело провёл время!");
+ if(energy<10){
+  say("😴 Нужно восстановить энергию!");
+  return;
+ }
+
+ questDone=true;
+ money+=150;
+ energy-=10;
+ stats();
+ say("🎉 Ты выполнил поручение мэра и получил 150 ₽!");
 }
 
-function move(n) {
-  position = Math.max(1, Math.min(90, position + n));
+function gameLoop(){
+ move();
+ updateCamera();
 
-  document.getElementById("hero").style.left =
-    position + "%";
+ ctx.clearRect(0,0,900,600);
+
+ if(scene==="world"){
+  ctx.save();
+  ctx.translate(-camera.x,-camera.y);
+  drawWorld();
+  ctx.restore();
+
+  let near=buildings.find(b=>
+   Math.hypot(player.x-b.doorX,player.y-b.doorY)<85
+  );
+
+  document.getElementById("location").textContent=
+   "📍 "+(near?"Рядом: "+near.name:"Улицы Печегора");
+
+ }else{
+  drawInside();
+  document.getElementById("location").textContent=
+   "📍 "+currentBuilding.name;
+ }
+
+ requestAnimationFrame(gameLoop);
 }
 
-function fair() {
-  let r = Math.random();
-  let prize;
+// Клавиатура
+document.addEventListener("keydown",e=>{
+ const k=e.key.toLowerCase();
 
-  if (r < 0.40) prize = 250;
-  else if (r < 0.65) prize = 500;
-  else if (r < 0.80) prize = 1000;
-  else prize = 150;
+ if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(k))
+  e.preventDefault();
 
-  money += prize;
-  mood = Math.min(100, mood + 5);
+ keys[k]=true;
 
-  update();
+ if(k==="e"&&!e.repeat)interact();
+});
 
-  document.getElementById("fairResult").textContent =
-    "🎉 Твой приз: " + prize + " игровых рублей!";
+document.addEventListener("keyup",e=>{
+ keys[e.key.toLowerCase()]=false;
+});
 
-  say("🎁 Поздравляем с призом!");
+// Мобильное управление
+function bindButton(id,key){
+ const btn=document.getElementById(id);
+
+ btn.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+  keys[key]=true;
+  btn.setPointerCapture(e.pointerId);
+ });
+
+ function release(){keys[key]=false}
+
+ btn.addEventListener("pointerup",release);
+ btn.addEventListener("pointercancel",release);
+ btn.addEventListener("lostpointercapture",release);
 }
 
-update();
+bindButton("up","arrowup");
+bindButton("down","arrowdown");
+bindButton("left","arrowleft");
+bindButton("right","arrowright");
+
+stats();
+gameLoop();
 </script>
 
 </body>
