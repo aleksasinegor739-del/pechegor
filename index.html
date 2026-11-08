@@ -3,59 +3,45 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Печегор 3D</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;overflow:hidden;background:#18251d;font-family:Arial;color:white}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Arial;background:#8cc9e8}
 canvas{display:block}
-#hud{position:absolute;top:10px;left:10px;background:#17251deF;padding:12px;border-radius:14px;width:220px;font-size:13px}
-#money{font-size:19px;color:#ffdf75;font-weight:bold;margin-bottom:8px}
-.stat{margin:7px 0}
-.track{height:9px;background:#455348;border-radius:8px;overflow:hidden;margin-top:3px}
-.fill{height:100%;width:100%;background:#65d77b}
-#message{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:#17251ded;padding:11px 16px;border-radius:12px;text-align:center;max-width:90%;z-index:2}
-#actions{position:absolute;right:12px;bottom:15px;display:grid;grid-template-columns:repeat(2,115px);gap:7px}
-button{border:0;border-radius:10px;padding:11px 7px;background:#e9bd65;color:#29251c;font-weight:bold;cursor:pointer;font-size:13px}
-button:active{transform:scale(.96)}
-#movement{position:absolute;left:12px;bottom:15px;display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(2,46px);gap:5px}
-#movement button{padding:0;font-size:20px;background:#edf0e3}
-.up{grid-column:2}.left{grid-column:1;grid-row:2}.down{grid-column:2;grid-row:2}.right{grid-column:3;grid-row:2}
-#modal{display:none;position:absolute;inset:0;background:#000b;z-index:5;align-items:center;justify-content:center;padding:15px}
-#modalBox{background:#293d30;padding:22px;border-radius:18px;width:min(390px,100%);max-height:85vh;overflow:auto;text-align:center}
-#modalButtons{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:15px 0}
-#modalButtons button{min-width:110px}
-@media(max-width:600px){
- #hud{width:185px;padding:9px;font-size:12px}
- #actions{grid-template-columns:repeat(2,85px);gap:5px;right:7px;bottom:10px}
- #actions button{font-size:11px;padding:10px 3px}
- #movement{transform:scale(.9);transform-origin:bottom left;left:7px;bottom:10px}
+#hud{position:fixed;top:8px;left:8px;z-index:2;background:#17251de8;color:white;padding:10px;border-radius:12px;width:175px;font-size:12px}
+#money{font-size:17px;color:#ffdf75;font-weight:bold}
+.stat{margin-top:6px}
+.track{height:7px;background:#455448;border-radius:8px;overflow:hidden}
+.fill{height:100%;background:#70d879;width:100%}
+#message{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:3;background:#17251de8;color:white;padding:9px;border-radius:10px;font-size:12px;text-align:center}
+#joystick{position:fixed;left:20px;bottom:20px;width:130px;height:130px;border-radius:50%;background:#ffffff55;border:3px solid #ffffffaa;z-index:4;touch-action:none}
+#stick{position:absolute;left:50%;top:50%;width:55px;height:55px;transform:translate(-50%,-50%);border-radius:50%;background:#f1c76c;border:3px solid white;pointer-events:none}
+#actions{position:fixed;right:8px;bottom:12px;z-index:4;display:grid;grid-template-columns:repeat(2,85px);gap:6px}
+button{border:0;border-radius:10px;padding:10px 5px;background:#e9bd65;color:#29251c;font-weight:bold;font-size:12px}
+#modal{display:none;position:fixed;inset:0;z-index:10;background:#000a;align-items:center;justify-content:center;padding:12px}
+#box{background:#293d30;color:white;border-radius:15px;padding:18px;width:min(370px,95vw);text-align:center}
+#modalButtons{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:12px}
+@media(max-height:430px){
+ #joystick{width:105px;height:105px;bottom:10px}
+ #stick{width:45px;height:45px}
+ #actions{grid-template-columns:repeat(2,75px);bottom:5px}
+ button{padding:7px 3px;font-size:10px}
 }
 </style>
 </head>
 <body>
+
 <div id="hud">
  <div id="money">💰 1000 ₽</div>
- <div class="stat">⚡ Выносливость: <b id="energyText">100</b>
-  <div class="track"><div class="fill" id="energyBar"></div></div>
- </div>
- <div class="stat">🍗 Голод: <b id="hungerText">100</b>
-  <div class="track"><div class="fill" id="hungerBar"></div></div>
- </div>
- <div class="stat">😊 Счастье: <b id="happyText">70</b>
-  <div class="track"><div class="fill" id="happyBar"></div></div>
- </div>
- <div>📍 <b id="place">Деревня</b></div>
+ <div class="stat">⚡ Выносливость: <b id="energyText">100</b><div class="track"><div class="fill" id="energyBar"></div></div></div>
+ <div class="stat">🍗 Голод: <b id="hungerText">100</b><div class="track"><div class="fill" id="hungerBar"></div></div></div>
+ <div class="stat">😊 Счастье: <b id="happyText">70</b><div class="track"><div class="fill" id="happyBar"></div></div></div>
 </div>
 
 <div id="message">Добро пожаловать в Печегор!</div>
 
-<div id="movement">
- <button class="up" data-move="up">▲</button>
- <button class="left" data-move="left">◀</button>
- <button class="down" data-move="down">▼</button>
- <button class="right" data-move="right">▶</button>
-</div>
+<div id="joystick"><div id="stick"></div></div>
 
 <div id="actions">
  <button onclick="work()">💼 Работа</button>
@@ -64,11 +50,11 @@ button:active{transform:scale(.96)}
  <button onclick="walk()">🌳 Прогулка</button>
  <button onclick="shop()">🛒 Магазин</button>
  <button onclick="casino()">🎰 Казино</button>
- <button onclick="interact()">🚪 Войти / выйти</button>
+ <button onclick="interact()">🚪 Войти</button>
 </div>
 
 <div id="modal">
- <div id="modalBox">
+ <div id="box">
   <h2 id="modalTitle"></h2>
   <p id="modalText"></p>
   <div id="modalButtons"></div>
@@ -90,300 +76,266 @@ scene.fog=new THREE.Fog(0x9bd5ed,45,110);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,200);
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
 renderer.shadowMap.enabled=true;
 document.body.prepend(renderer.domElement);
 
 scene.add(new THREE.HemisphereLight(0xffffff,0x557044,2));
-const sun=new THREE.DirectionalLight(0xffffff,2);
+const sun=new THREE.DirectionalLight(0xffffff,1.7);
 sun.position.set(-20,30,15);
 sun.castShadow=true;
 scene.add(sun);
 
 const material=c=>new THREE.MeshStandardMaterial({color:c});
-const grass=material(0x65a94d);
-const road=material(0xc6ad7d);
-const brown=material(0x875337);
-const roof=material(0x963e32);
-
-function cube(w,h,d,mat,x,y,z){
- const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
- m.position.set(x,y,z);
- m.castShadow=true;m.receiveShadow=true;
- scene.add(m);return m;
+function cube(w,h,d,color,x,y,z){
+ const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material(color));
+ o.position.set(x,y,z);
+ o.castShadow=true;o.receiveShadow=true;
+ scene.add(o);return o;
 }
 
-// Мир
-cube(120,.3,120,grass,0,-.2,0);
-cube(7,.08,100,road,0,0,0);
-cube(100,.08,6,road,0,.01,0);
+// Земля
+cube(120,.3,120,0x65a94d,0,-.2,0);
+cube(7,.08,100,0xc6ad7d,0,0,0);
+cube(100,.08,7,0xc6ad7d,0,.01,0);
 
 // Озеро
-const lake=new THREE.Mesh(
- new THREE.CircleGeometry(8,48),
- material(0x398ec0)
-);
-lake.rotation.x=-Math.PI/2;
-lake.position.set(23,.03,18);
-scene.add(lake);
+const water=cube(17,.15,12,0x379bc9,18,.02,-17);
+
+// Дома
+const buildings=[];
+function house(name,x,z,color){
+ cube(8,5,7,color,x,2.5,z);
+ const roof=cube(9,1,8,0x8c4332,x,5.5,z);
+ roof.rotation.z=.12;
+ cube(1.5,2.5,.2,0x553622,x,1.25,z+3.61);
+ buildings.push({name,x,z});
+}
+house("Дом",-13,-12,0xd9bd8c);
+house("Магазин",12,8,0xd9a85e);
+house("Ратуша",-13,12,0xd8d8c8);
+house("Казино",14,-5,0xb77bc4);
 
 // Деревья
-function tree(x,z){
- const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.25,.35,2,8),brown);
- trunk.position.set(x,1,z);scene.add(trunk);
- const crown=new THREE.Mesh(new THREE.ConeGeometry(1.5,3.5,8),material(0x347a3c));
- crown.position.set(x,3.4,z);scene.add(crown);
-}
-for(let i=0;i<65;i++){
- const x=(Math.random()-.5)*95;
- const z=(Math.random()-.5)*95;
- if(Math.abs(x)<10||Math.abs(z)<9)continue;
- if(Math.hypot(x-23,z-18)<11)continue;
- tree(x,z);
-}
-
-// Здания
-const buildings=[
- {name:"Дом",x:-13,z:-11,color:0xe6c18d},
- {name:"Магазин",x:13,z:-12,color:0x6ca8d5},
- {name:"Ратуша",x:-14,z:13,color:0xe7d8bd},
- {name:"Казино",x:14,z:12,color:0x9c5caa}
-];
-
-for(const b of buildings){
- cube(9,5,8,material(b.color),b.x,2.5,b.z);
- const r=new THREE.Mesh(new THREE.ConeGeometry(7,3.5,4),roof);
- r.position.set(b.x,6.7,b.z);
- r.rotation.y=Math.PI/4;
- scene.add(r);
- cube(1.5,2.5,.2,brown,b.x,1.25,b.z-4.1);
+for(let i=0;i<35;i++){
+ const x=Math.random()*90-45;
+ const z=Math.random()*90-45;
+ if(Math.abs(x)<8&&Math.abs(z)<8)continue;
+ cube(.6,2,.6,0x704329,x,1,z);
+ const crown=new THREE.Mesh(
+  new THREE.SphereGeometry(1.5,8,8),
+  material(0x287b3d)
+ );
+ crown.position.set(x,3,z);
+ scene.add(crown);
 }
 
 // Персонаж
 const player=new THREE.Group();
-const body=new THREE.Mesh(new THREE.CylinderGeometry(.55,.7,1.5,12),material(0x4d9dc5));
-body.position.y=1.2;
+const body=new THREE.Mesh(new THREE.CapsuleGeometry(.55,.9,4,8),material(0x3159bb));
+body.position.y=1.1;
 player.add(body);
-const head=new THREE.Mesh(new THREE.SphereGeometry(.48,16,12),material(0xf0bd91));
-head.position.y=2.25;
+const head=new THREE.Mesh(new THREE.SphereGeometry(.42,12,12),material(0xf0c69b));
+head.position.y=2;
 player.add(head);
-const legMat=material(0x65432f);
-const leg1=new THREE.Mesh(new THREE.BoxGeometry(.3,.9,.35),legMat);
-const leg2=leg1.clone();
-leg1.position.set(-.25,.45,0);
-leg2.position.set(.25,.45,0);
-player.add(leg1,leg2);
-const arm1=new THREE.Mesh(new THREE.BoxGeometry(.25,1,.3),material(0xf0bd91));
-const arm2=arm1.clone();
-arm1.position.set(-.7,1.3,0);
-arm2.position.set(.7,1.3,0);
-player.add(arm1,arm2);
-player.position.set(0,0,4);
 scene.add(player);
+player.position.set(0,0,5);
 
+// Состояние
 let money=1000,energy=100,hunger=100,happy=70;
-let inside="";
-let townReward=false;
-let keys={up:false,down:false,left:false,right:false};
+let joyX=0,joyY=0;
+const keys={};
+let currentPlace="Деревня";
 
-function say(t){document.querySelector("#message").textContent=t}
-function update(){
- document.querySelector("#money").textContent="💰 "+money+" ₽";
- for(const [id,v] of [["energy",energy],["hunger",hunger],["happy",happy]]){
-  document.getElementById(id+"Text").textContent=Math.round(v);
-  document.getElementById(id+"Bar").style.width=v+"%";
- }
- document.querySelector("#place").textContent=inside||"Деревня";
-}
-function stat(k,v){
- if(k==="energy")energy=THREE.MathUtils.clamp(energy+v,0,100);
- if(k==="hunger")hunger=THREE.MathUtils.clamp(hunger+v,0,100);
- if(k==="happy")happy=THREE.MathUtils.clamp(happy+v,0,100);
- update();
-}
-function pay(n){
- if(money<n){say("Недостаточно игровых рублей!");return false}
- money-=n;update();return true;
-}
-function modal(title,text,buttons=[]){
- document.querySelector("#modalTitle").textContent=title;
- document.querySelector("#modalText").textContent=text;
- const box=document.querySelector("#modalButtons");
- box.innerHTML="";
- buttons.forEach(([label,fn])=>{
-  const b=document.createElement("button");
-  b.textContent=label;b.onclick=fn;box.appendChild(b);
- });
- document.querySelector("#modal").style.display="flex";
-}
-window.closeModal=()=>document.querySelector("#modal").style.display="none";
-
-// Экономика и действия
-window.work=()=>{
- if(energy<20||hunger<10){say("Сначала отдохни и поешь!");return}
- stat("energy",-20);stat("hunger",-10);stat("happy",-2);
- money+=250;update();
- say("Работа выполнена! Ты заработал 250 ₽.");
-};
-window.eat=()=>{
- if(!pay(100))return;
- stat("hunger",35);
- say("Ты поел. Голод уменьшился.");
-};
-window.rest=()=>{
- stat("energy",35);stat("happy",7);
- say("Ты восстановил выносливость и настроение.");
-};
-window.walk=()=>{
- if(energy<8){say("Недостаточно выносливости!");return}
- stat("energy",-8);stat("happy",15);
- say("Прогулка подняла настроение!");
-};
-
-window.shop=()=>{
- if(inside!=="Магазин"){say("Подойди к магазину и нажми E.");return}
- modal("Магазин","Выбери покупку:",[
-  ["Еда — 100 ₽",()=>{if(pay(100)){stat("hunger",35);say("Ты купил еду.");closeModal()}}],
-  ["Игрушка — 200 ₽",()=>{if(pay(200)){stat("happy",20);say("Ты купил игрушку.");closeModal()}}],
-  ["Цветок — 150 ₽",()=>{if(pay(150)){stat("happy",15);say("Ты купил цветок.");closeModal()}}]
- ]);
-};
-
-// Казино: ставки игровой валютой
-window.casino=()=>{
- if(inside!=="Казино"){say("Подойди к казино и нажми E.");return}
- modal("🎰 Казино Печегора",
- "Выбери ставку. Шанс выигрыша указан рядом. При победе ты получишь 2× ставку, при проигрыше ставка списывается.",[
-  ["250 ₽ · шанс 40%",()=>playCasino(250,40)],
-  ["450 ₽ · шанс 30%",()=>playCasino(450,30)],
-  ["650 ₽ · шанс 25%",()=>playCasino(650,25)],
-  ["1000 ₽ · шанс 10%",()=>playCasino(1000,10)]
- ]);
-};
-
-function playCasino(bet,chance){
- if(!pay(bet))return;
- const win=Math.random()*100<chance;
- if(win){
-  const prize=bet*2;
-  money+=prize;
-  stat("happy",8);
-  update();
-  modal("🎉 Победа!",`Ты выиграл! На баланс начислено ${prize} ₽.`,[]);
- }else{
-  stat("happy",-5);
-  modal("Не повезло","В этот раз ставка проиграла. Попробуй другое занятие.",[]);
+function updateHUD(){
+ document.getElementById("money").textContent="💰 "+money+" ₽";
+ for(const [id,value] of [["energy",energy],["hunger",hunger],["happy",happy]]){
+  document.getElementById(id+"Text").textContent=Math.round(value);
+  document.getElementById(id+"Bar").style.width=value+"%";
  }
 }
-
-// Вход в здания
-function nearest(){
- let result=null,dist=Infinity;
- for(const b of buildings){
-  const d=Math.hypot(player.position.x-b.x,player.position.z-b.z);
-  if(d<8&&d<dist){result=b;dist=d}
- }
- return result;
+function say(t){
+ document.getElementById("message").textContent=t;
 }
-window.interact=()=>{
- if(inside){
-  inside="";update();say("Ты вышел на улицу.");return;
- }
- const b=nearest();
- if(!b){say("Подойди ближе к зданию.");return}
- inside=b.name;update();
- if(b.name==="Дом"){
-  modal("🏠 Дом","Ты дома. Здесь можно хорошо восстановить силы.",[
-   ["Отдохнуть",()=>{stat("energy",65);stat("happy",15);closeModal();say("Ты отлично отдохнул дома!")}]
-  ]);
- }else if(b.name==="Магазин"){
-  say("Ты вошёл в магазин. Нажми кнопку «Магазин».");
- }else if(b.name==="Ратуша"){
-  if(townReward){say("Ты уже выполнил поручение ратуши.");return}
-  modal("🏛 Ратуша","Жители просят помочь с поручением. Награда — 150 ₽.",[
-   ["Выполнить поручение",()=>{
-    townReward=true;money+=150;stat("happy",10);update();
-    closeModal();say("Поручение выполнено! +150 ₽");
-   }]
-  ]);
- }else if(b.name==="Казино"){
-  say("Ты в казино. Нажми кнопку «Казино», чтобы выбрать ставку.");
- }
-};
+function spend(amount){
+ if(money<amount){say("Недостаточно денег!");return false}
+ money-=amount;updateHUD();return true;
+}
+
+// Джойстик
+const joystick=document.getElementById("joystick");
+const stick=document.getElementById("stick");
+let activePointer=null;
+
+function moveStick(e){
+ const r=joystick.getBoundingClientRect();
+ let x=e.clientX-(r.left+r.width/2);
+ let y=e.clientY-(r.top+r.height/2);
+ const max=36,d=Math.hypot(x,y);
+ if(d>max){x=x/d*max;y=y/d*max}
+ joyX=x/max;joyY=y/max;
+ stick.style.left=`calc(50% + ${x}px)`;
+ stick.style.top=`calc(50% + ${y}px)`;
+}
+function stopStick(){
+ activePointer=null;joyX=0;joyY=0;
+ stick.style.left="50%";stick.style.top="50%";
+}
+joystick.addEventListener("pointerdown",e=>{
+ activePointer=e.pointerId;
+ joystick.setPointerCapture(e.pointerId);
+ moveStick(e);
+});
+joystick.addEventListener("pointermove",e=>{
+ if(e.pointerId===activePointer)moveStick(e);
+});
+joystick.addEventListener("pointerup",stopStick);
+joystick.addEventListener("pointercancel",stopStick);
+joystick.addEventListener("lostpointercapture",stopStick);
 
 // Клавиатура
 window.addEventListener("keydown",e=>{
- const k=e.key.toLowerCase();
- if(k==="w"||k==="arrowup")keys.up=true;
- if(k==="s"||k==="arrowdown")keys.down=true;
- if(k==="a"||k==="arrowleft")keys.left=true;
- if(k==="d"||k==="arrowright")keys.right=true;
- if(k==="e")interact();
+ keys[e.key.toLowerCase()]=true;
 });
 window.addEventListener("keyup",e=>{
- const k=e.key.toLowerCase();
- if(k==="w"||k==="arrowup")keys.up=false;
- if(k==="s"||k==="arrowdown")keys.down=false;
- if(k==="a"||k==="arrowleft")keys.left=false;
- if(k==="d"||k==="arrowright")keys.right=false;
+ keys[e.key.toLowerCase()]=false;
 });
 
-// Экранные кнопки
-document.querySelectorAll("[data-move]").forEach(btn=>{
- const key=btn.dataset.move;
- btn.addEventListener("pointerdown",e=>{e.preventDefault();keys[key]=true});
- for(const ev of ["pointerup","pointerleave","pointercancel"])
-  btn.addEventListener(ev,()=>keys[key]=false);
-});
+// Действия
+window.work=()=>{
+ if(energy<20||hunger<10){say("Нужно отдохнуть или поесть!");return}
+ money+=250;energy-=20;hunger-=10;
+ say("Ты заработал 250 ₽!");
+ updateHUD();
+};
+window.eat=()=>{
+ if(!spend(100))return;
+ hunger=Math.min(100,hunger+35);
+ say("Ты перекусил!");
+ updateHUD();
+};
+window.rest=()=>{
+ energy=Math.min(100,energy+35);
+ happy=Math.min(100,happy+10);
+ say("Ты отдохнул.");
+ updateHUD();
+};
+window.walk=()=>{
+ if(energy<10){say("Не хватает выносливости!");return}
+ energy-=10;happy=Math.min(100,happy+15);
+ say("Прогулка подняла настроение!");
+ updateHUD();
+};
 
-// Время и восстановление
-setInterval(()=>{
- if(!inside){
-  stat("hunger",-0.5);
-  if(energy>0)stat("energy",-0.15);
+function openModal(title,text,buttons){
+ document.getElementById("modalTitle").textContent=title;
+ document.getElementById("modalText").textContent=text;
+ const area=document.getElementById("modalButtons");
+ area.innerHTML="";
+ buttons.forEach(b=>{
+  const el=document.createElement("button");
+  el.textContent=b.label;
+  el.onclick=b.action;
+  area.appendChild(el);
+ });
+ document.getElementById("modal").style.display="flex";
+}
+window.closeModal=()=>{
+ document.getElementById("modal").style.display="none";
+};
+window.shop=()=>{
+ openModal("🛒 Магазин","Что хочешь купить?",[
+  {label:"Еда — 100 ₽",action:()=>{if(spend(100)){hunger=Math.min(100,hunger+35);updateHUD();say("Куплена еда!")}closeModal()}},
+  {label:"Игрушка — 200 ₽",action:()=>{if(spend(200)){happy=Math.min(100,happy+20);updateHUD();say("Куплена игрушка!")}closeModal()}},
+  {label:"Цветок — 150 ₽",action:()=>{if(spend(150)){happy=Math.min(100,happy+15);updateHUD();say("Куплен цветок!")}closeModal()}}
+ ]);
+};
+
+// Виртуальные ставки — только игровая валюта
+window.casino=()=>{
+ openModal("🎰 Казино Печегора","Выбери ставку. Шанс указан рядом. При победе выплата — 2 ставки.",[
+  {label:"250 ₽ — 40%",action:()=>bet(250,.40)},
+  {label:"450 ₽ — 30%",action:()=>bet(450,.30)},
+  {label:"650 ₽ — 25%",action:()=>bet(650,.25)},
+  {label:"1000 ₽ — 10%",action:()=>bet(1000,.10)}
+ ]);
+};
+function bet(stake,chance){
+ if(!spend(stake)){closeModal();return}
+ if(Math.random()<chance){
+  money+=stake*2;
+  say("🎉 Победа! Ты получил "+stake*2+" ₽!");
+ }else say("В этот раз не повезло. Попробуй снова позже.");
+ updateHUD();closeModal();
+}
+
+// Взаимодействие с ближайшим зданием
+window.interact=()=>{
+ let nearest=null,best=Infinity;
+ for(const b of buildings){
+  const d=Math.hypot(player.position.x-b.x,player.position.z-b.z);
+  if(d<best){best=d;nearest=b}
  }
- if(hunger<20)stat("happy",-1);
-},5000);
+ if(best>8){say("Подойди ближе к зданию.");return}
+ currentPlace=nearest.name;
+ document.getElementById("place").textContent=currentPlace;
+ say("Ты около здания: "+currentPlace);
+ if(nearest.name==="Ратуша"){
+  openModal("🏛 Ратуша","Помоги деревне! Награда за задание — 150 ₽.",[
+   {label:"Получить награду",action:()=>{
+    if(!window.questDone){money+=150;window.questDone=true;say("Задание выполнено! +150 ₽");updateHUD()}
+    else say("Задание уже выполнено.");
+    closeModal();
+   }}
+  ]);
+ }
+};
 
 // Камера и движение
 const clock=new THREE.Clock();
 function animate(){
  requestAnimationFrame(animate);
  const dt=Math.min(clock.getDelta(),.05);
- if(!inside){
-  let dx=0,dz=0;
-  if(keys.up)dz-=1;
-  if(keys.down)dz+=1;
-  if(keys.left)dx-=1;
-  if(keys.right)dx+=1;
-  const moving=dx!==0||dz!==0;
-  if(moving){
-   const len=Math.hypot(dx,dz);
-   dx/=len;dz/=len;
-   player.position.x+=dx*7*dt;
-   player.position.z+=dz*7*dt;
-   player.rotation.y=Math.atan2(dx,dz);
-  }
-  player.position.x=THREE.MathUtils.clamp(player.position.x,-53,53);
-  player.position.z=THREE.MathUtils.clamp(player.position.z,-53,53);
+
+ let dx=joyX+(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);
+ let dz=joyY+(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
+ const length=Math.hypot(dx,dz);
+ if(length>1){dx/=length;dz/=length}
+
+ if(length>.05){
+  player.position.x+=dx*8*dt;
+  player.position.z+=dz*8*dt;
+  player.rotation.y=Math.atan2(dx,dz);
+  energy=Math.max(0,energy-.8*dt);
  }
+
+ player.position.x=THREE.MathUtils.clamp(player.position.x,-53,53);
+ player.position.z=THREE.MathUtils.clamp(player.position.z,-53,53);
+
  const target=new THREE.Vector3(
   player.position.x,
   player.position.y+3,
   player.position.z+7
  );
- camera.position.lerp(target,.09);
+ camera.position.lerp(target,1-Math.pow(.001,dt));
  camera.lookAt(player.position.x,player.position.y+1,player.position.z);
+
+ updateHUD();
  renderer.render(scene,camera);
 }
 animate();
+
+setInterval(()=>{
+ hunger=Math.max(0,hunger-.3);
+ if(hunger===0)energy=Math.max(0,energy-1);
+ updateHUD();
+},5000);
 
 window.addEventListener("resize",()=>{
  camera.aspect=innerWidth/innerHeight;
  camera.updateProjectionMatrix();
  renderer.setSize(innerWidth,innerHeight);
 });
-update();
 </script>
 </body>
 </html>
