@@ -4,626 +4,386 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Печегор 3.0</title>
-
+<title>Печегор 3D</title>
 <style>
 *{box-sizing:border-box}
-body{
- margin:0;background:#17291e;color:white;
- font-family:Arial,sans-serif;
-}
-header{
- position:sticky;top:0;z-index:5;
- display:flex;justify-content:space-between;
- align-items:center;padding:14px;
- background:#285b3b;
-}
-header b{font-size:18px}
-.money{
- background:#193b27;padding:10px;
- border-radius:10px;color:#c5f49d;font-weight:bold
-}
-main{max-width:950px;margin:auto;padding:12px}
-.panel{
- background:#294735;padding:14px;
- border-radius:15px;margin-bottom:13px
-}
-canvas{
- width:100%;height:auto;display:block;
- border-radius:12px;border:3px solid #648c58;
- background:#80b96b;touch-action:none
-}
-h3{margin-top:0}
-.info{color:#c2d5c2;font-size:13px}
-#location{color:#c9efa8;font-weight:bold}
-#message{color:#ffe9a2;min-height:25px}
-.controls{
- display:grid;grid-template-columns:repeat(3,60px);
- justify-content:center;gap:7px;margin:15px
-}
-button{
- border:0;border-radius:11px;padding:13px;
- background:#a9e68b;color:#193522;
- font-size:15px;font-weight:bold;cursor:pointer
-}
-.controls button{height:55px;font-size:22px}
-.empty{visibility:hidden}
-.action{width:100%;background:#e8bd70}
-#interact{background:#a9e68b}
-.shop-items{
- display:grid;grid-template-columns:repeat(2,1fr);gap:9px
-}
-.item{
- background:#385c43;padding:12px;
- border-radius:12px;text-align:center
-}
-.item button{width:100%;margin-top:8px}
-.hidden{display:none}
-@media(max-width:450px){
- header b{font-size:15px}
- .money{font-size:13px}
+body{margin:0;overflow:hidden;background:#18251d;font-family:Arial;color:white}
+canvas{display:block}
+#hud{position:absolute;top:10px;left:10px;background:#17251deF;padding:12px;border-radius:14px;width:220px;font-size:13px}
+#money{font-size:19px;color:#ffdf75;font-weight:bold;margin-bottom:8px}
+.stat{margin:7px 0}
+.track{height:9px;background:#455348;border-radius:8px;overflow:hidden;margin-top:3px}
+.fill{height:100%;width:100%;background:#65d77b}
+#message{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:#17251ded;padding:11px 16px;border-radius:12px;text-align:center;max-width:90%;z-index:2}
+#actions{position:absolute;right:12px;bottom:15px;display:grid;grid-template-columns:repeat(2,115px);gap:7px}
+button{border:0;border-radius:10px;padding:11px 7px;background:#e9bd65;color:#29251c;font-weight:bold;cursor:pointer;font-size:13px}
+button:active{transform:scale(.96)}
+#movement{position:absolute;left:12px;bottom:15px;display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(2,46px);gap:5px}
+#movement button{padding:0;font-size:20px;background:#edf0e3}
+.up{grid-column:2}.left{grid-column:1;grid-row:2}.down{grid-column:2;grid-row:2}.right{grid-column:3;grid-row:2}
+#modal{display:none;position:absolute;inset:0;background:#000b;z-index:5;align-items:center;justify-content:center;padding:15px}
+#modalBox{background:#293d30;padding:22px;border-radius:18px;width:min(390px,100%);max-height:85vh;overflow:auto;text-align:center}
+#modalButtons{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:15px 0}
+#modalButtons button{min-width:110px}
+@media(max-width:600px){
+ #hud{width:185px;padding:9px;font-size:12px}
+ #actions{grid-template-columns:repeat(2,85px);gap:5px;right:7px;bottom:10px}
+ #actions button{font-size:11px;padding:10px 3px}
+ #movement{transform:scale(.9);transform-origin:bottom left;left:7px;bottom:10px}
 }
 </style>
 </head>
-
 <body>
-
-<header>
- <b>🏡 ПЕЧЕГОР 3.0</b>
- <div class="money" id="money">💰 1250 ₽</div>
-</header>
-
-<main>
-
-<div class="panel">
- <h3 id="sceneTitle">🗺️ Деревня Печегор</h3>
- <canvas id="game" width="900" height="600"></canvas>
- <p id="location">📍 Улицы Печегора</p>
- <p class="info" id="hint">
- Исследуй деревню. Подойди к двери и нажми E.
- </p>
-</div>
-
-<div class="panel">
- <h3>🎮 Управление</h3>
- <div class="controls">
-  <button class="empty"> </button>
-  <button id="up">⬆️</button>
-  <button class="empty"> </button>
-  <button id="left">⬅️</button>
-  <button id="down">⬇️</button>
-  <button id="right">➡️</button>
+<div id="hud">
+ <div id="money">💰 1000 ₽</div>
+ <div class="stat">⚡ Выносливость: <b id="energyText">100</b>
+  <div class="track"><div class="fill" id="energyBar"></div></div>
  </div>
- <button class="action" id="interact" onclick="interact()">
-  🚪 Взаимодействовать
- </button>
- <p class="info">Клавиши WASD или стрелки. E — взаимодействие.</p>
+ <div class="stat">🍗 Голод: <b id="hungerText">100</b>
+  <div class="track"><div class="fill" id="hungerBar"></div></div>
+ </div>
+ <div class="stat">😊 Счастье: <b id="happyText">70</b>
+  <div class="track"><div class="fill" id="happyBar"></div></div>
+ </div>
+ <div>📍 <b id="place">Деревня</b></div>
 </div>
 
-<div class="panel">
- <h3>👤 Персонаж</h3>
- <p>❤️ Сытость: <b id="food">80%</b></p>
- <p>⚡ Энергия: <b id="energy">86%</b></p>
- <p>😊 Настроение: <b id="mood">90%</b></p>
+<div id="message">Добро пожаловать в Печегор!</div>
+
+<div id="movement">
+ <button class="up" data-move="up">▲</button>
+ <button class="left" data-move="left">◀</button>
+ <button class="down" data-move="down">▼</button>
+ <button class="right" data-move="right">▶</button>
 </div>
 
-<div class="panel hidden" id="shopPanel">
- <h3>🏪 Магазин продуктов</h3>
- <p>👨‍🌾 Продавец: Добро пожаловать! Что желаете?</p>
- <div class="shop-items">
-  <div class="item">
-   🥪 <b>Бутерброд</b>
-   <p>80 ₽ · +30 сытости</p>
-   <button onclick="buy('food')">Купить</button>
-  </div>
-  <div class="item">
-   🍎 <b>Яблоки</b>
-   <p>40 ₽ · +15 сытости</p>
-   <button onclick="buy('apple')">Купить</button>
-  </div>
-  <div class="item">
-   🧸 <b>Игрушка</b>
-   <p>150 ₽ · +20 настроения</p>
-   <button onclick="buy('toy')">Купить</button>
-  </div>
-  <div class="item">
-   🌻 <b>Цветок</b>
-   <p>100 ₽ · +12 настроения</p>
-   <button onclick="buy('plant')">Купить</button>
-  </div>
+<div id="actions">
+ <button onclick="work()">💼 Работа</button>
+ <button onclick="eat()">🍞 Поесть</button>
+ <button onclick="rest()">🛏 Отдых</button>
+ <button onclick="walk()">🌳 Прогулка</button>
+ <button onclick="shop()">🛒 Магазин</button>
+ <button onclick="casino()">🎰 Казино</button>
+ <button onclick="interact()">🚪 Войти / выйти</button>
+</div>
+
+<div id="modal">
+ <div id="modalBox">
+  <h2 id="modalTitle"></h2>
+  <p id="modalText"></p>
+  <div id="modalButtons"></div>
+  <button onclick="closeModal()">Закрыть</button>
  </div>
 </div>
 
-<div class="panel hidden" id="homePanel">
- <h3>🏠 Твой дом</h3>
- <p>Здесь можно отдохнуть и восстановить силы.</p>
- <button class="action" onclick="rest()">🛏 Отдохнуть</button>
-</div>
-
-<div class="panel hidden" id="townPanel">
- <h3>🏛️ Ратуша</h3>
- <p>Мэр: Здравствуй! У нас есть небольшая работа.</p>
- <button class="action" onclick="quest()">
-  📦 Выполнить поручение (+150 ₽)
- </button>
-</div>
-
-<div class="panel">
- <h3>📢 Новости</h3>
- <p id="message">Добро пожаловать в Печегор!</p>
-</div>
-
-</main>
-
-<script>
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
-
-const W=1800,H=1300;
-
-let money=1250;
-let food=80,energy=86,mood=90;
-
-let scene="world";
-let currentBuilding=null;
-let questDone=false;
-
-const player={
- x:420,y:420,speed:3
-};
-
-const camera={x:0,y:0};
-const keys={};
-
-const buildings=[
- {id:"home",name:"Твой дом",x:350,y:300,w:160,h:120,doorX:430,doorY:435,icon:"🏠"},
- {id:"shop",name:"Магазин",x:1050,y:280,w:150,h:120,doorX:1125,doorY:415,icon:"🏪"},
- {id:"town",name:"Ратуша",x:1250,y:1000,w:170,h:120,doorX:1335,doorY:1125,icon:"🏛️"}
-];
-
-const trees=[
- [100,100],[200,250],[700,150],[850,350],
- [1500,180],[1650,400],[900,900],
- [200,1100],[750,1150],[1550,1150],
- [1700,850],[1000,600],[650,700]
-];
-
-function say(t){
- document.getElementById("message").textContent=t;
-}
-
-function stats(){
- document.getElementById("money").textContent="💰 "+money+" ₽";
- document.getElementById("food").textContent=food+"%";
- document.getElementById("energy").textContent=energy+"%";
- document.getElementById("mood").textContent=mood+"%";
-}
-
-function showPanel(id){
- ["shopPanel","homePanel","townPanel"].forEach(x=>{
-  document.getElementById(x).classList.add("hidden");
- });
- if(id)document.getElementById(id+"Panel").classList.remove("hidden");
-}
-
-function enter(b){
- scene="inside";
- currentBuilding=b;
- keys.ArrowUp=false;
- keys.ArrowDown=false;
- keys.ArrowLeft=false;
- keys.ArrowRight=false;
-
- player.x=450;
- player.y=490;
-
- document.getElementById("sceneTitle").textContent=
- "🚪 "+b.name;
- document.getElementById("hint").textContent=
- "Исследуй помещение. Подойди к выходу и нажми E.";
-
- showPanel(b.id==="shop"?"shop":b.id==="home"?"home":"town");
- say("Ты вошёл: "+b.name);
-}
-
-function exit(){
- scene="world";
- currentBuilding=null;
-
- if(currentBuilding===null) {
-  // Возвращаем персонажа к соответствующему зданию
-  const b=buildings.find(x=>player.exitId===x.id);
-  if(b){
-   player.x=b.doorX;
-   player.y=b.doorY+35;
-  }
- }
-
- document.getElementById("sceneTitle").textContent="🗺️ Деревня Печегор";
- document.getElementById("hint").textContent=
- "Исследуй деревню. Подойди к двери и нажми E.";
-
- showPanel(null);
- say("Ты вышел на улицу!");
-}
-
-function enterBuilding(b){
- player.exitId=b.id;
- enter(b);
-}
-
-function road(x,y,w,h){
- ctx.fillStyle="#c8b58b";
- ctx.fillRect(x,y,w,h);
-}
-
-function drawBuilding(b){
- ctx.fillStyle="#0003";
- ctx.fillRect(b.x+7,b.y+8,b.w,b.h);
-
- ctx.fillStyle=b.id==="home"?"#e5cba2":
- b.id==="shop"?"#e7c47e":"#d3c4a4";
-
- ctx.fillRect(b.x,b.y,b.w,b.h);
-
- ctx.strokeStyle="#684b35";
- ctx.lineWidth=5;
- ctx.strokeRect(b.x,b.y,b.w,b.h);
-
- ctx.fillStyle="#974d3d";
- ctx.beginPath();
- ctx.moveTo(b.x-15,b.y);
- ctx.lineTo(b.x+b.w/2,b.y-65);
- ctx.lineTo(b.x+b.w+15,b.y);
- ctx.closePath();
- ctx.fill();
-
- ctx.font="44px Arial";
- ctx.textAlign="center";
- ctx.fillText(b.icon,b.x+b.w/2,b.y+b.h/2+15);
-
- ctx.font="bold 18px Arial";
- ctx.fillStyle="#183321";
- ctx.fillText(b.name,b.x+b.w/2,b.y+b.h+25);
-
- // Дверь
- ctx.fillStyle="#67412f";
- ctx.fillRect(b.doorX-17,b.doorY-23,34,46);
-}
-
-function drawWorld(){
- ctx.fillStyle="#80b96b";
- ctx.fillRect(0,0,W,H);
-
- ctx.fillStyle="#73ad61";
- for(let i=0;i<160;i++){
-  ctx.fillRect((i*137)%W,(i*193)%H,5,5);
- }
-
- road(0,480,W,95);
- road(700,0,90,H);
- road(250,700,1100,75);
- road(1100,700,90,600);
-
- // Озеро
- ctx.fillStyle="#56b7d6";
- ctx.beginPath();
- ctx.ellipse(1550,650,145,95,0,0,Math.PI*2);
- ctx.fill();
-
- ctx.strokeStyle="#a5e4ed";
- ctx.lineWidth=5;
- ctx.stroke();
-
- for(const [x,y] of trees){
-  ctx.font="48px Arial";
-  ctx.fillText("🌳",x,y);
- }
-
- buildings.forEach(drawBuilding);
-
- drawPlayer();
-}
-
-function drawPlayer(){
- ctx.font="43px Arial";
- ctx.textAlign="center";
- ctx.fillText("🧍",player.x,player.y+10);
-}
-
-function drawInside(){
- const b=currentBuilding;
-
- ctx.fillStyle="#c49b6b";
- ctx.fillRect(0,0,900,600);
-
- // Пол
- ctx.fillStyle="#b98451";
- ctx.fillRect(0,0,900,600);
-
- // Стены
- ctx.fillStyle="#e6d4ad";
- ctx.fillRect(0,0,900,70);
- ctx.fillRect(0,0,45,600);
- ctx.fillRect(855,0,45,600);
- ctx.fillRect(0,555,900,45);
-
- // Окна
- ctx.fillStyle="#83d4e5";
- ctx.fillRect(100,90,130,100);
- ctx.fillRect(670,90,130,100);
-
- ctx.strokeStyle="#79513b";
- ctx.lineWidth=8;
- ctx.strokeRect(100,90,130,100);
- ctx.strokeRect(670,90,130,100);
-
- ctx.strokeStyle="#79513b";
- ctx.lineWidth=5;
- ctx.beginPath();
- ctx.moveTo(165,90);
- ctx.lineTo(165,190);
- ctx.moveTo(100,140);
- ctx.lineTo(230,140);
- ctx.moveTo(735,90);
- ctx.lineTo(735,190);
- ctx.moveTo(670,140);
- ctx.lineTo(800,140);
- ctx.stroke();
-
- if(b.id==="home"){
-  ctx.font="55px Arial";
-  ctx.fillText("🛏️",250,340);
-  ctx.fillText("🛋️",650,350);
-  ctx.fillText("🪴",120,420);
-  ctx.fillText("🪑",750,430);
-  ctx.font="bold 28px Arial";
-  ctx.fillStyle="#51351f";
-  ctx.fillText("Мой уютный дом",450,260);
- }
-
- if(b.id==="shop"){
-  ctx.fillStyle="#79533a";
-  ctx.fillRect(100,310,700,35);
-  ctx.font="48px Arial";
-  ctx.fillText("🥪",220,290);
-  ctx.fillText("🍎",350,290);
-  ctx.fillText("🧸",500,290);
-  ctx.fillText("🌻",650,290);
-  ctx.font="55px Arial";
-  ctx.fillText("👨‍🌾",450,440);
-  ctx.font="bold 26px Arial";
-  ctx.fillStyle="#51351f";
-  ctx.fillText("МАГАЗИН",450,235);
- }
-
- if(b.id==="town"){
-  ctx.font="65px Arial";
-  ctx.fillText("🏛️",450,340);
-  ctx.font="bold 28px Arial";
-  ctx.fillStyle="#51351f";
-  ctx.fillText("Ратуша Печегора",450,235);
-  ctx.font="50px Arial";
-  ctx.fillText("👨‍💼",450,440);
- }
-
- // Выход
- ctx.fillStyle="#67412f";
- ctx.fillRect(390,535,120,65);
- ctx.fillStyle="white";
- ctx.font="17px Arial";
- ctx.fillText("ВЫХОД",450,520);
-
- drawPlayer();
-}
-
-function updateCamera(){
- camera.x=Math.max(0,Math.min(W-900,player.x-450));
- camera.y=Math.max(0,Math.min(H-600,player.y-300));
-}
-
-function collides(x,y){
- for(const b of buildings){
-  // Оставляем проход в дверях
-  const nearDoor=Math.abs(x-b.doorX)<30 &&
-                  Math.abs(y-b.doorY)<35;
-
-  if(!nearDoor &&
-    x+13>b.x-12 && x-13<b.x+b.w+12 &&
-    y+10>b.y-12 && y-10<b.y+b.h+12)
-    return true;
- }
-
- const dx=(x-1550)/145;
- const dy=(y-650)/95;
- if(dx*dx+dy*dy<1)return true;
-
- return false;
-}
-
-function move(){
- let dx=0,dy=0;
-
- if(keys.ArrowUp||keys.w)dy--;
- if(keys.ArrowDown||keys.s)dy++;
- if(keys.ArrowLeft||keys.a)dx--;
- if(keys.ArrowRight||keys.d)dx++;
-
- if(!dx&&!dy)return;
-
- let len=Math.hypot(dx,dy);
- dx=dx/len*player.speed;
- dy=dy/len*player.speed;
-
- if(scene==="world"){
-  if(!collides(player.x+dx,player.y))player.x+=dx;
-  if(!collides(player.x,player.y+dy))player.y+=dy;
-
-  player.x=Math.max(15,Math.min(W-15,player.x));
-  player.y=Math.max(15,Math.min(H-15,player.y));
- }else{
-  player.x=Math.max(60,Math.min(840,player.x+dx));
-  player.y=Math.max(100,Math.min(530,player.y+dy));
- }
-}
-
-function interact(){
- if(scene==="inside"){
-  if(player.y>465){
-   exit();
-  }else if(currentBuilding.id==="home" &&
-           player.x>150&&player.x<350&&player.y>270){
-   rest();
-  }
-  return;
- }
-
- let b=buildings.find(b=>
-  Math.hypot(player.x-b.doorX,player.y-b.doorY)<85
- );
-
- if(b){
-  enterBuilding(b);
- }else{
-  const lake=Math.hypot(
-   (player.x-1550)/145,
-   (player.y-650)/95
-  );
-
-  if(lake<1.5){
-   mood=Math.min(100,mood+5);
-   stats();
-   say("🌊 Ты любуешься озером!");
-  }else{
-   say("🚶 Здесь пока нечего исследовать.");
-  }
- }
-}
-
-function buy(type){
- let prices={
-  food:80,apple:40,toy:150,plant:100
- };
-
- let price=prices[type];
-
- if(money<price){
-  say("❌ Не хватает игровых рублей!");
-  return;
- }
-
- money-=price;
-
- if(type==="food")food=Math.min(100,food+30);
- if(type==="apple")food=Math.min(100,food+15);
- if(type==="toy")mood=Math.min(100,mood+20);
- if(type==="plant")mood=Math.min(100,mood+12);
-
- stats();
- say("🛍️ Покупка совершена!");
-}
-
-function rest(){
- if(scene!=="inside"||currentBuilding.id!=="home"){
-  say("Нужно находиться дома!");
-  return;
- }
-
- energy=Math.min(100,energy+40);
- mood=Math.min(100,mood+10);
- stats();
- say("🛏️ Ты хорошо отдохнул!");
-}
-
-function quest(){
- if(scene!=="inside"||currentBuilding.id!=="town")return;
-
- if(questDone){
-  say("📦 Сегодня поручение уже выполнено!");
-  return;
- }
-
- if(energy<10){
-  say("😴 Нужно восстановить энергию!");
-  return;
- }
-
- questDone=true;
- money+=150;
- energy-=10;
- stats();
- say("🎉 Ты выполнил поручение мэра и получил 150 ₽!");
-}
-
-function gameLoop(){
- move();
- updateCamera();
-
- ctx.clearRect(0,0,900,600);
-
- if(scene==="world"){
-  ctx.save();
-  ctx.translate(-camera.x,-camera.y);
-  drawWorld();
-  ctx.restore();
-
-  let near=buildings.find(b=>
-   Math.hypot(player.x-b.doorX,player.y-b.doorY)<85
-  );
-
-  document.getElementById("location").textContent=
-   "📍 "+(near?"Рядом: "+near.name:"Улицы Печегора");
-
- }else{
-  drawInside();
-  document.getElementById("location").textContent=
-   "📍 "+currentBuilding.name;
- }
-
- requestAnimationFrame(gameLoop);
-}
-
-// Клавиатура
-document.addEventListener("keydown",e=>{
- const k=e.key.toLowerCase();
-
- if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(k))
-  e.preventDefault();
-
- keys[k]=true;
-
- if(k==="e"&&!e.repeat)interact();
-});
-
-document.addEventListener("keyup",e=>{
- keys[e.key.toLowerCase()]=false;
-});
-
-// Мобильное управление
-function bindButton(id,key){
- const btn=document.getElementById(id);
-
- btn.addEventListener("pointerdown",e=>{
-  e.preventDefault();
-  keys[key]=true;
-  btn.setPointerCapture(e.pointerId);
- });
-
- function release(){keys[key]=false}
-
- btn.addEventListener("pointerup",release);
- btn.addEventListener("pointercancel",release);
- btn.addEventListener("lostpointercapture",release);
-}
-
-bindButton("up","arrowup");
-bindButton("down","arrowdown");
-bindButton("left","arrowleft");
-bindButton("right","arrowright");
-
-stats();
-gameLoop();
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}
 </script>
 
+<script type="module">
+import * as THREE from "three";
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x9bd5ed);
+scene.fog=new THREE.Fog(0x9bd5ed,45,110);
+
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,200);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+document.body.prepend(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xffffff,0x557044,2));
+const sun=new THREE.DirectionalLight(0xffffff,2);
+sun.position.set(-20,30,15);
+sun.castShadow=true;
+scene.add(sun);
+
+const material=c=>new THREE.MeshStandardMaterial({color:c});
+const grass=material(0x65a94d);
+const road=material(0xc6ad7d);
+const brown=material(0x875337);
+const roof=material(0x963e32);
+
+function cube(w,h,d,mat,x,y,z){
+ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+ m.position.set(x,y,z);
+ m.castShadow=true;m.receiveShadow=true;
+ scene.add(m);return m;
+}
+
+// Мир
+cube(120,.3,120,grass,0,-.2,0);
+cube(7,.08,100,road,0,0,0);
+cube(100,.08,6,road,0,.01,0);
+
+// Озеро
+const lake=new THREE.Mesh(
+ new THREE.CircleGeometry(8,48),
+ material(0x398ec0)
+);
+lake.rotation.x=-Math.PI/2;
+lake.position.set(23,.03,18);
+scene.add(lake);
+
+// Деревья
+function tree(x,z){
+ const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.25,.35,2,8),brown);
+ trunk.position.set(x,1,z);scene.add(trunk);
+ const crown=new THREE.Mesh(new THREE.ConeGeometry(1.5,3.5,8),material(0x347a3c));
+ crown.position.set(x,3.4,z);scene.add(crown);
+}
+for(let i=0;i<65;i++){
+ const x=(Math.random()-.5)*95;
+ const z=(Math.random()-.5)*95;
+ if(Math.abs(x)<10||Math.abs(z)<9)continue;
+ if(Math.hypot(x-23,z-18)<11)continue;
+ tree(x,z);
+}
+
+// Здания
+const buildings=[
+ {name:"Дом",x:-13,z:-11,color:0xe6c18d},
+ {name:"Магазин",x:13,z:-12,color:0x6ca8d5},
+ {name:"Ратуша",x:-14,z:13,color:0xe7d8bd},
+ {name:"Казино",x:14,z:12,color:0x9c5caa}
+];
+
+for(const b of buildings){
+ cube(9,5,8,material(b.color),b.x,2.5,b.z);
+ const r=new THREE.Mesh(new THREE.ConeGeometry(7,3.5,4),roof);
+ r.position.set(b.x,6.7,b.z);
+ r.rotation.y=Math.PI/4;
+ scene.add(r);
+ cube(1.5,2.5,.2,brown,b.x,1.25,b.z-4.1);
+}
+
+// Персонаж
+const player=new THREE.Group();
+const body=new THREE.Mesh(new THREE.CylinderGeometry(.55,.7,1.5,12),material(0x4d9dc5));
+body.position.y=1.2;
+player.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(.48,16,12),material(0xf0bd91));
+head.position.y=2.25;
+player.add(head);
+const legMat=material(0x65432f);
+const leg1=new THREE.Mesh(new THREE.BoxGeometry(.3,.9,.35),legMat);
+const leg2=leg1.clone();
+leg1.position.set(-.25,.45,0);
+leg2.position.set(.25,.45,0);
+player.add(leg1,leg2);
+const arm1=new THREE.Mesh(new THREE.BoxGeometry(.25,1,.3),material(0xf0bd91));
+const arm2=arm1.clone();
+arm1.position.set(-.7,1.3,0);
+arm2.position.set(.7,1.3,0);
+player.add(arm1,arm2);
+player.position.set(0,0,4);
+scene.add(player);
+
+let money=1000,energy=100,hunger=100,happy=70;
+let inside="";
+let townReward=false;
+let keys={up:false,down:false,left:false,right:false};
+
+function say(t){document.querySelector("#message").textContent=t}
+function update(){
+ document.querySelector("#money").textContent="💰 "+money+" ₽";
+ for(const [id,v] of [["energy",energy],["hunger",hunger],["happy",happy]]){
+  document.getElementById(id+"Text").textContent=Math.round(v);
+  document.getElementById(id+"Bar").style.width=v+"%";
+ }
+ document.querySelector("#place").textContent=inside||"Деревня";
+}
+function stat(k,v){
+ if(k==="energy")energy=THREE.MathUtils.clamp(energy+v,0,100);
+ if(k==="hunger")hunger=THREE.MathUtils.clamp(hunger+v,0,100);
+ if(k==="happy")happy=THREE.MathUtils.clamp(happy+v,0,100);
+ update();
+}
+function pay(n){
+ if(money<n){say("Недостаточно игровых рублей!");return false}
+ money-=n;update();return true;
+}
+function modal(title,text,buttons=[]){
+ document.querySelector("#modalTitle").textContent=title;
+ document.querySelector("#modalText").textContent=text;
+ const box=document.querySelector("#modalButtons");
+ box.innerHTML="";
+ buttons.forEach(([label,fn])=>{
+  const b=document.createElement("button");
+  b.textContent=label;b.onclick=fn;box.appendChild(b);
+ });
+ document.querySelector("#modal").style.display="flex";
+}
+window.closeModal=()=>document.querySelector("#modal").style.display="none";
+
+// Экономика и действия
+window.work=()=>{
+ if(energy<20||hunger<10){say("Сначала отдохни и поешь!");return}
+ stat("energy",-20);stat("hunger",-10);stat("happy",-2);
+ money+=250;update();
+ say("Работа выполнена! Ты заработал 250 ₽.");
+};
+window.eat=()=>{
+ if(!pay(100))return;
+ stat("hunger",35);
+ say("Ты поел. Голод уменьшился.");
+};
+window.rest=()=>{
+ stat("energy",35);stat("happy",7);
+ say("Ты восстановил выносливость и настроение.");
+};
+window.walk=()=>{
+ if(energy<8){say("Недостаточно выносливости!");return}
+ stat("energy",-8);stat("happy",15);
+ say("Прогулка подняла настроение!");
+};
+
+window.shop=()=>{
+ if(inside!=="Магазин"){say("Подойди к магазину и нажми E.");return}
+ modal("Магазин","Выбери покупку:",[
+  ["Еда — 100 ₽",()=>{if(pay(100)){stat("hunger",35);say("Ты купил еду.");closeModal()}}],
+  ["Игрушка — 200 ₽",()=>{if(pay(200)){stat("happy",20);say("Ты купил игрушку.");closeModal()}}],
+  ["Цветок — 150 ₽",()=>{if(pay(150)){stat("happy",15);say("Ты купил цветок.");closeModal()}}]
+ ]);
+};
+
+// Казино: ставки игровой валютой
+window.casino=()=>{
+ if(inside!=="Казино"){say("Подойди к казино и нажми E.");return}
+ modal("🎰 Казино Печегора",
+ "Выбери ставку. Шанс выигрыша указан рядом. При победе ты получишь 2× ставку, при проигрыше ставка списывается.",[
+  ["250 ₽ · шанс 40%",()=>playCasino(250,40)],
+  ["450 ₽ · шанс 30%",()=>playCasino(450,30)],
+  ["650 ₽ · шанс 25%",()=>playCasino(650,25)],
+  ["1000 ₽ · шанс 10%",()=>playCasino(1000,10)]
+ ]);
+};
+
+function playCasino(bet,chance){
+ if(!pay(bet))return;
+ const win=Math.random()*100<chance;
+ if(win){
+  const prize=bet*2;
+  money+=prize;
+  stat("happy",8);
+  update();
+  modal("🎉 Победа!",`Ты выиграл! На баланс начислено ${prize} ₽.`,[]);
+ }else{
+  stat("happy",-5);
+  modal("Не повезло","В этот раз ставка проиграла. Попробуй другое занятие.",[]);
+ }
+}
+
+// Вход в здания
+function nearest(){
+ let result=null,dist=Infinity;
+ for(const b of buildings){
+  const d=Math.hypot(player.position.x-b.x,player.position.z-b.z);
+  if(d<8&&d<dist){result=b;dist=d}
+ }
+ return result;
+}
+window.interact=()=>{
+ if(inside){
+  inside="";update();say("Ты вышел на улицу.");return;
+ }
+ const b=nearest();
+ if(!b){say("Подойди ближе к зданию.");return}
+ inside=b.name;update();
+ if(b.name==="Дом"){
+  modal("🏠 Дом","Ты дома. Здесь можно хорошо восстановить силы.",[
+   ["Отдохнуть",()=>{stat("energy",65);stat("happy",15);closeModal();say("Ты отлично отдохнул дома!")}]
+  ]);
+ }else if(b.name==="Магазин"){
+  say("Ты вошёл в магазин. Нажми кнопку «Магазин».");
+ }else if(b.name==="Ратуша"){
+  if(townReward){say("Ты уже выполнил поручение ратуши.");return}
+  modal("🏛 Ратуша","Жители просят помочь с поручением. Награда — 150 ₽.",[
+   ["Выполнить поручение",()=>{
+    townReward=true;money+=150;stat("happy",10);update();
+    closeModal();say("Поручение выполнено! +150 ₽");
+   }]
+  ]);
+ }else if(b.name==="Казино"){
+  say("Ты в казино. Нажми кнопку «Казино», чтобы выбрать ставку.");
+ }
+};
+
+// Клавиатура
+window.addEventListener("keydown",e=>{
+ const k=e.key.toLowerCase();
+ if(k==="w"||k==="arrowup")keys.up=true;
+ if(k==="s"||k==="arrowdown")keys.down=true;
+ if(k==="a"||k==="arrowleft")keys.left=true;
+ if(k==="d"||k==="arrowright")keys.right=true;
+ if(k==="e")interact();
+});
+window.addEventListener("keyup",e=>{
+ const k=e.key.toLowerCase();
+ if(k==="w"||k==="arrowup")keys.up=false;
+ if(k==="s"||k==="arrowdown")keys.down=false;
+ if(k==="a"||k==="arrowleft")keys.left=false;
+ if(k==="d"||k==="arrowright")keys.right=false;
+});
+
+// Экранные кнопки
+document.querySelectorAll("[data-move]").forEach(btn=>{
+ const key=btn.dataset.move;
+ btn.addEventListener("pointerdown",e=>{e.preventDefault();keys[key]=true});
+ for(const ev of ["pointerup","pointerleave","pointercancel"])
+  btn.addEventListener(ev,()=>keys[key]=false);
+});
+
+// Время и восстановление
+setInterval(()=>{
+ if(!inside){
+  stat("hunger",-0.5);
+  if(energy>0)stat("energy",-0.15);
+ }
+ if(hunger<20)stat("happy",-1);
+},5000);
+
+// Камера и движение
+const clock=new THREE.Clock();
+function animate(){
+ requestAnimationFrame(animate);
+ const dt=Math.min(clock.getDelta(),.05);
+ if(!inside){
+  let dx=0,dz=0;
+  if(keys.up)dz-=1;
+  if(keys.down)dz+=1;
+  if(keys.left)dx-=1;
+  if(keys.right)dx+=1;
+  const moving=dx!==0||dz!==0;
+  if(moving){
+   const len=Math.hypot(dx,dz);
+   dx/=len;dz/=len;
+   player.position.x+=dx*7*dt;
+   player.position.z+=dz*7*dt;
+   player.rotation.y=Math.atan2(dx,dz);
+  }
+  player.position.x=THREE.MathUtils.clamp(player.position.x,-53,53);
+  player.position.z=THREE.MathUtils.clamp(player.position.z,-53,53);
+ }
+ const target=new THREE.Vector3(
+  player.position.x,
+  player.position.y+3,
+  player.position.z+7
+ );
+ camera.position.lerp(target,.09);
+ camera.lookAt(player.position.x,player.position.y+1,player.position.z);
+ renderer.render(scene,camera);
+}
+animate();
+
+window.addEventListener("resize",()=>{
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(innerWidth,innerHeight);
+});
+update();
+</script>
 </body>
 </html>
