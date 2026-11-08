@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#254d35">
+<title>Печегор 3D</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#18251d;color:#fff;font-family:Arial,sans-serif;overflow:hidden}
+#game{position:fixed;inset:0}canvas{display:block;width:100%;height:100%;touch-action:none}
+#top{position:absolute;top:0;left:0;right:0;padding:12px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+.panel{background:#17251dcc;border:1px solid #ffffff44;border-radius:13px;padding:10px 13px;backdrop-filter:blur(6px);pointer-events:auto}
+#brand{font-size:22px;font-weight:900}#cash{font-weight:bold;color:#ffe58a}
+#needs{position:absolute;top:66px;left:12px;width:min(190px,48vw)}
+.need{font-size:12px;margin:5px 0}.bar{height:7px;border-radius:8px;background:#ffffff44;overflow:hidden;margin-top:3px}.fill{height:100%;background:#8bdb71;width:80%}
+#help{position:absolute;top:12px;left:50%;transform:translateX(-50%);max-width:36vw;text-align:center;font-size:12px}
+#controls{position:absolute;bottom:18px;left:14px;display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,52px);gap:5px}
+button{border:1px solid #ffffff66;background:#173a2bd9;color:white;border-radius:13px;font-weight:bold;font-size:19px;touch-action:none}
+#controls button{font-size:23px}
+#actions{position:absolute;bottom:18px;right:12px;display:flex;flex-direction:column;gap:7px;width:145px}
+#actions button{font-size:13px;padding:12px 7px}
+#toast{position:absolute;bottom:165px;left:50%;transform:translateX(-50%);background:#17251ddd;padding:10px 14px;border-radius:12px;font-size:13px;max-width:85vw;text-align:center}
+#hint{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:11px;color:#ffffffc9;white-space:nowrap}
+@media(min-width:800px){#controls{left:25px}#actions{right:25px;width:175px}#needs{left:25px}}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="top"><div class="panel"><div id="brand">💎 ПЕЧЕГОР 3D</div><small>Семейная жизнь начинается</small></div><div class="panel" id="cash">1 250 ₽</div></div>
+<div id="needs" class="panel">
+ <b>Потребности</b>
+ <div class="need">🍔 Сытость<div class="bar"><div class="fill" id="food"></div></div></div>
+ <div class="need">⚡ Энергия<div class="bar"><div class="fill" id="energy"></div></div></div>
+ <div class="need">🙂 Настроение<div class="bar"><div class="fill" id="mood"></div></div></div>
+</div>
+<div id="help" class="panel">Исследуй участок и заходи в дом</div>
+<div id="controls">
+ <span></span><button data-dir="forward">▲</button><span></span>
+ <button data-dir="left">◀</button><button data-dir="back">▼</button><button data-dir="right">▶</button>
+</div>
+<div id="actions">
+ <button id="enter">🏠 Войти в дом</button>
+ <button id="foodBtn">🛒 Купить еду · 80 ₽</button>
+ <button id="workBtn">💼 Подработка +100 ₽</button>
+ <button id="restBtn">🛏 Отдохнуть</button>
+</div>
+<div id="toast">Добро пожаловать! Нажимай стрелки, чтобы ходить.</div>
+<div id="hint">Можно играть сенсорными кнопками или клавиатурой WASD</div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const host=document.getElementById('game');
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x9bc8e8);scene.fog=new THREE.Fog(0x9bc8e8,24,65);
+const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,100);camera.position.set(0,7,10);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;host.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff,0x63824e,2));
+const sun=new THREE.DirectionalLight(0xffffff,2.1);sun.position.set(-7,13,8);sun.castShadow=true;scene.add(sun);
+function mat(color){return new THREE.MeshStandardMaterial({color,roughness:.85})}
+function box(w,h,d,color,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
+const ground=box(60,.25,60,0x76ae62,0,-.18,0);
+const road=box(5,.03,60,0xaaa69a,0,-.02,10);
+const house= new THREE.Group();scene.add(house);
+let walls=new THREE.Mesh(new THREE.BoxGeometry(8,3.3,6),mat(0xe7d1aa));walls.position.set(0,1.65,-5);walls.castShadow=true;house.add(walls);
+let roof=new THREE.Mesh(new THREE.ConeGeometry(6.2,2.5,4),mat(0x874d39));roof.rotation.y=Math.PI/4;roof.position.set(0,4.45,-5);roof.castShadow=true;house.add(roof);
+box(1.25,2.2,.15,0x805239,0,1.1,-1.91);
+box(1.5,1.2,.15,0x86cbe4,-2.3,2,-1.89);box(1.5,1.2,.15,0x86cbe4,2.3,2,-1.89);
+box(4,.15,3,0xbba17c,0,.15,-9);
+function tree(x,z){let trunk=new THREE.Mesh(new THREE.CylinderGeometry(.22,.3,1.8,7),mat(0x765039));trunk.position.set(x,.8,z);scene.add(trunk);let crown=new THREE.Mesh(new THREE.SphereGeometry(1.25,10,8),mat(0x347c45));crown.position.set(x,2.4,z);crown.castShadow=true;scene.add(crown)}
+tree(-7,-2);tree(7,-1);tree(-8,7);tree(8,8);
+for(let i=0;i<7;i++){box(1.4,.1,1.4,0xc7b89a,0,.02,2+i*1.7)}
+// Simple third-person avatar
+const player=new THREE.Group();scene.add(player);
+const body=new THREE.Mesh(new THREE.CapsuleGeometry(.38,.85,4,8),mat(0x314e83));body.position.y=1.05;body.castShadow=true;player.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(.3,16,12),mat(0xd6a078));head.position.y=1.85;head.castShadow=true;player.add(head);
+player.position.set(2,0,3);
+let money=1250,food=78,energy=86,mood=90,inside=false;
+const keys={};let toastTimer;
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.style.display='none',2600)}
+function updateUI(){document.getElementById('cash').textContent=money.toLocaleString('ru-RU')+' ₽';for(const [id,v] of [['food',food],['energy',energy],['mood',mood]])document.getElementById(id).style.width=v+'%'}
+function move(dir){keys[dir]=true;setTimeout(()=>keys[dir]=false,150)}
+document.querySelectorAll('[data-dir]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();move(b.dataset.dir)})});
+document.addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(['w','arrowup'].includes(k))keys.forward=true;if(['s','arrowdown'].includes(k))keys.back=true;if(['a','arrowleft'].includes(k))keys.left=true;if(['d','arrowright'].includes(k))keys.right=true});
+document.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(['w','arrowup'].includes(k))keys.forward=false;if(['s','arrowdown'].includes(k))keys.back=false;if(['a','arrowleft'].includes(k))keys.left=false;if(['d','arrowright'].includes(k))keys.right=false});
+document.getElementById('foodBtn').onclick=()=>{if(money<80)return toast('Не хватает денег! Подработай.');money-=80;food=Math.min(100,food+35);updateUI();toast('Продукты куплены! Сытость повысилась.')};
+document.getElementById('workBtn').onclick=()=>{money+=100;energy=Math.max(0,energy-8);updateUI();toast('Ты заработал 100 рублей!')};
+document.getElementById('restBtn').onclick=()=>{energy=Math.min(100,energy+30);mood=Math.min(100,mood+5);updateUI();toast('Ты отдохнул.')};
+document.getElementById('enter').onclick=()=>{inside=!inside;toast(inside?'Ты дома. Скоро добавим интерьер!':'Ты вышел на улицу.');};
+const clock=new THREE.Clock();
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);let dx=0,dz=0;if(keys.forward)dz-=1;if(keys.back)dz+=1;if(keys.left)dx-=1;if(keys.right)dx+=1;if(dx||dz){const l=Math.hypot(dx,dz);player.position.x+=dx/l*4*dt;player.position.z+=dz/l*4*dt;player.position.x=THREE.MathUtils.clamp(player.position.x,-14,14);player.position.z=THREE.MathUtils.clamp(player.position.z,-14,14);player.rotation.y=Math.atan2(dx,dz)}
+const target=new THREE.Vector3(player.position.x,player.position.y+1,player.position.z);camera.position.lerp(new THREE.Vector3(player.position.x+5,7,player.position.z+8),.06);camera.lookAt(target);renderer.render(scene,camera)}
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+updateUI();animate();
+</script>
+</body></html>
