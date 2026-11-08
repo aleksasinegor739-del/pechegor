@@ -7,21 +7,24 @@
 <title>Печегор 3D</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;overflow:hidden;font-family:Arial;background:#87ceeb;color:white}
+body{margin:0;overflow:hidden;font-family:Arial;background:#87ceeb;color:white;touch-action:none}
+canvas{display:block;touch-action:none}
 #hud{position:fixed;top:8px;left:8px;z-index:5;background:#17251ddc;padding:10px;border-radius:12px;font-size:14px;line-height:1.7}
-#message{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#17251de8;padding:10px 16px;border-radius:12px;z-index:8;display:none;text-align:center}
-#panel{display:none;position:fixed;z-index:10;left:50%;top:50%;transform:translate(-50%,-50%);width:min(340px,90vw);background:#24382e;color:white;padding:20px;border:2px solid #91b69a;border-radius:16px;text-align:center}
+#message{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#17251de8;padding:10px 16px;border-radius:12px;z-index:8;display:none;text-align:center;max-width:90vw}
+#panel{display:none;position:fixed;z-index:10;left:50%;top:50%;transform:translate(-50%,-50%);width:min(340px,90vw);max-height:85vh;overflow:auto;background:#24382e;color:white;padding:20px;border:2px solid #91b69a;border-radius:16px;text-align:center}
 #panel button{display:block;width:100%;padding:12px;margin-top:9px;border:0;border-radius:9px;background:#69a86f;color:white;font-size:16px}
 #panel button.close{background:#a34e4e}
 #controls{position:fixed;bottom:18px;left:15px;z-index:5;width:130px;height:130px;border-radius:50%;background:#ffffff35;border:2px solid #ffffff77;touch-action:none}
 #stick{position:absolute;width:52px;height:52px;left:37px;top:37px;border-radius:50%;background:#ffffffbb;pointer-events:none}
 #actions{position:fixed;bottom:20px;right:12px;z-index:5;display:grid;grid-template-columns:repeat(2,75px);gap:8px}
 #actions button{height:58px;border:0;border-radius:14px;background:#24382edc;color:white;font-weight:bold;font-size:12px}
+#saveButton{position:fixed;right:12px;top:10px;z-index:6;background:#24382edc;color:white;border:0;border-radius:10px;padding:10px;font-size:13px}
+#help{position:fixed;bottom:4px;left:50%;transform:translateX(-50%);font-size:11px;color:#fff;text-shadow:1px 1px 2px #000;white-space:nowrap;pointer-events:none}
 button:active{filter:brightness(1.3)}
-#help{position:fixed;bottom:4px;left:50%;transform:translateX(-50%);font-size:11px;color:#fff;text-shadow:1px 1px 2px #000;white-space:nowrap}
 </style>
 </head>
 <body>
+
 <div id="hud">
 <b>🏡 ПЕЧЕГОР 3D</b><br>
 💰 Деньги: <span id="money">1000</span> ₽<br>
@@ -29,76 +32,128 @@ button:active{filter:brightness(1.3)}
 🍗 Голод: <span id="hunger">100</span><br>
 😊 Радость: <span id="happy">70</span>
 </div>
+
+<button id="saveButton" onclick="manualSave()">💾 Сохранить</button>
 <div id="message"></div>
+
 <div id="panel">
 <h2 id="panelTitle">Меню</h2>
 <p id="panelText"></p>
 <div id="panelButtons"></div>
 <button class="close" onclick="closePanel()">Закрыть</button>
 </div>
+
 <div id="controls"><div id="stick"></div></div>
+
 <div id="actions">
 <button onclick="interact()">🤝 Взаимодействие</button>
 <button onclick="work()">💼 Работа</button>
 <button onclick="eat()">🍞 Поесть</button>
 <button onclick="rest()">🛏 Отдых</button>
 </div>
-<div id="help">WASD / стрелки — движение · E — взаимодействие</div>
+
+<div id="help">WASD — движение · E — взаимодействие · Вращай камеру пальцем</div>
 
 <script type="importmap">
 {"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}
 </script>
+
 <script type="module">
 import * as THREE from "three";
+
+const SAVE_KEY="pechegorSave";
+
+// ЗАГРУЗКА СОХРАНЕНИЯ
+let loadedSave=null;
+try{
+ loadedSave=JSON.parse(localStorage.getItem(SAVE_KEY)||"null");
+}catch(e){
+ console.log("Не удалось загрузить сохранение",e);
+}
+
+let money=loadedSave?.money??1000;
+let energy=loadedSave?.energy??100;
+let hunger=loadedSave?.hunger??100;
+let happy=loadedSave?.happy??70;
+let indoors=loadedSave?.indoors??false;
+let questDone=loadedSave?.questDone??false;
+
+// Камера
+let cameraYaw=loadedSave?.cameraYaw??0;
+let cameraPitch=loadedSave?.cameraPitch??0.48;
+let cameraDistance=loadedSave?.cameraDistance??11;
+
+cameraPitch=Math.max(-0.15,Math.min(1.2,cameraPitch));
+cameraDistance=Math.max(5,Math.min(22,cameraDistance));
 
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x87ceeb);
 scene.fog=new THREE.Fog(0x87ceeb,35,100);
 
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,200);
+
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.domElement.style.touchAction="none";
 document.body.appendChild(renderer.domElement);
 
 scene.add(new THREE.HemisphereLight(0xffffff,0x637b50,2));
+
 const sun=new THREE.DirectionalLight(0xffffff,2);
 sun.position.set(-20,30,20);
 sun.castShadow=true;
 scene.add(sun);
 
 const mat=c=>new THREE.MeshStandardMaterial({color:c});
+
 const materials={
-grass:mat(0x65a84b),road:mat(0xb5a27a),wood:mat(0x8a542e),
-roof:mat(0x9d3730),white:mat(0xe5dfca),blue:mat(0x2874bd),
-darkblue:mat(0x183c79),skin:mat(0xe5ae7e),black:mat(0x252525),
-green:mat(0x337d38),red:mat(0xb83d32),glass:mat(0x6bb6d4),
-yellow:mat(0xd8b43b),purple:mat(0x8051aa)
+grass:mat(0x65a84b),
+road:mat(0xb5a27a),
+wood:mat(0x8a542e),
+blue:mat(0x2874bd),
+darkblue:mat(0x183c79),
+skin:mat(0xe5ae7e),
+black:mat(0x252525),
+green:mat(0x337d38),
+glass:mat(0x6bb6d4)
 };
 
 function block(parent,w,h,d,color,x,y,z){
  const surface=color&&color.isMaterial?color:mat(color);
  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),surface);
  m.position.set(x,y,z);
- m.castShadow=true;m.receiveShadow=true;
- parent.add(m);return m;
+ m.castShadow=true;
+ m.receiveShadow=true;
+ parent.add(m);
+ return m;
 }
+
 function group(parent,x,y,z){
- const g=new THREE.Group();g.position.set(x,y,z);parent.add(g);return g;
+ const g=new THREE.Group();
+ g.position.set(x,y,z);
+ parent.add(g);
+ return g;
 }
 
-const world=new THREE.Group();scene.add(world);
-const inside=new THREE.Group();scene.add(inside);inside.visible=false;
+const world=new THREE.Group();
+scene.add(world);
 
+const inside=new THREE.Group();
+scene.add(inside);
+inside.visible=false;
+
+// Земля и дороги
 block(world,200,.2,200,materials.grass,0,-.15,0);
 block(world,10,.08,200,materials.road,0,-.03,0);
 block(world,200,.08,8,materials.road,0,-.02,0);
 
 // Озеро
 const lake=block(world,15,.15,10,materials.glass,-25,-.03,20);
-lake.material.transparent=true;lake.material.opacity=.8;
+lake.material.transparent=true;
+lake.material.opacity=.8;
 
 // Деревья
 for(let i=0;i<38;i++){
@@ -106,11 +161,12 @@ for(let i=0;i<38;i++){
  const z=Math.cos(i*8.1)*42;
  if(Math.abs(x)<12||Math.abs(z)<10)continue;
  block(world,.7,2,.7,materials.wood,x,1,z);
- const crown=block(world,2.8,2.8,2.8,materials.green,x,3,z);
+ block(world,2.8,2.8,2.8,materials.green,x,3,z);
 }
 
 // Здания
 const buildings=[];
+
 function building(name,x,z,wall,roof){
  const g=group(world,x,0,z);
  block(g,8,5,7,wall,0,2.5,0);
@@ -119,23 +175,32 @@ function building(name,x,z,wall,roof){
  block(g,1,1.2,.1,materials.glass,0,3,3.7);
  buildings.push({name,x,z,g});
 }
+
 building("Дом",-18,-12,0xe4c89a,0x9e4033);
 building("Магазин",17,-13,0xd8e0c4,0x39844c);
 building("Ратуша",-18,16,0xd5d2c0,0x5477a4);
 building("Казино",18,17,0xd9b9dc,0x8744a0);
 
-// Таблички над зданиями
+// Таблички
 function label(text,x,z){
  const canvas=document.createElement("canvas");
- canvas.width=512;canvas.height=128;
+ canvas.width=512;
+ canvas.height=128;
  const c=canvas.getContext("2d");
- c.fillStyle="#24382e";c.fillRect(0,0,512,128);
- c.fillStyle="white";c.font="bold 48px Arial";c.textAlign="center";
+ c.fillStyle="#24382e";
+ c.fillRect(0,0,512,128);
+ c.fillStyle="white";
+ c.font="bold 48px Arial";
+ c.textAlign="center";
  c.fillText(text,256,82);
+
  const texture=new THREE.CanvasTexture(canvas);
  const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture}));
- sprite.position.set(x,8,z);sprite.scale.set(7,1.8,1);world.add(sprite);
+ sprite.position.set(x,8,z);
+ sprite.scale.set(7,1.8,1);
+ world.add(sprite);
 }
+
 label("🏠 ДОМ",-18,-12);
 label("🛒 МАГАЗИН",17,-13);
 label("🏛 РАТУША",-18,16);
@@ -143,12 +208,14 @@ label("🎰 КАЗИНО",18,17);
 
 // Персонаж
 const player=group(world,0,0,0);
-const torso=block(player,1.1,1.4,.55,materials.blue,0,1.9,0);
-const head=block(player,.9,.9,.9,materials.skin,0,3.05,0);
+
+block(player,1.1,1.4,.55,materials.blue,0,1.9,0);
+block(player,.9,.9,.9,materials.skin,0,3.05,0);
 block(player,.13,.13,.05,materials.black,-.2,3.15,.46);
 block(player,.13,.13,.05,materials.black,.2,3.15,.46);
 block(player,.5,.65,.5,materials.darkblue,-.3,.85,0);
 block(player,.5,.65,.5,materials.darkblue,.3,.85,0);
+
 const armL=block(player,.35,1.3,.4,materials.blue,-.8,1.95,0);
 const armR=block(player,.35,1.3,.4,materials.blue,.8,1.95,0);
 
@@ -158,17 +225,20 @@ block(inside,12,.3,.3,0xe6d5b5,100,3,94);
 block(inside,12,.3,.3,0xe6d5b5,100,3,106);
 block(inside,.3,3,12,0xe6d5b5,94,1.5,100);
 block(inside,.3,3,12,0xe6d5b5,106,1.5,100);
-// Внутренние стены и дверь
+
+// Стена с дверным проёмом
 block(inside,4,3,.3,0xe6d5b5,97,1.5,106);
 block(inside,4,3,.3,0xe6d5b5,103,1.5,106);
 
 // Мебель
 const furniture=[];
+
 function item(name,x,z,w,h,d,color){
  const m=block(inside,w,h,d,color,100+x,h/2,100+z);
  furniture.push({name,x,z,mesh:m});
  return m;
 }
+
 item("Диван",-3,-3,3,1,1.2,0x3474a9);
 item("Кресло",-5,-1,1.5,1.2,1.5,0x7e4d9a);
 item("Телевизор",3,-4,2,.2,.3,0x222222);
@@ -179,28 +249,59 @@ item("Стол",0,1,2,.3,1.5,0x98612e);
 item("Плита",2,1,1.4,.9,1,0x444444);
 item("Тумбочка",-5,4,1,.8,1,0x8a542e);
 
-// Переменные
-let money=1000,energy=100,hunger=100,happy=70;
-let indoors=false,questDone=false;
+// Восстановление положения персонажа
+if(loadedSave){
+ if(indoors){
+  player.position.set(
+   loadedSave.playerX??100,
+   0,
+   loadedSave.playerZ??101
+  );
+  world.visible=false;
+  inside.visible=true;
+ }else{
+  player.position.set(
+   loadedSave.playerX??0,
+   0,
+   loadedSave.playerZ??0
+  );
+ }
+}
+
+// Интерфейс
+const $=id=>document.getElementById(id);
+
 let panelOpen=false;
 let lastWork=0;
-let casinoBusy=false;
+let hudTimer=0;
+let saveTimer=0;
 
-try{
- const saved=JSON.parse(localStorage.getItem("pechegorSave")||"null");
- if(saved){
-  money=saved.money??money;
-  energy=saved.energy??energy;
-  hunger=saved.hunger??hunger;
-  happy=saved.happy??happy;
-  questDone=saved.questDone??false;
- }
-}catch(e){}
-
-const $=id=>document.getElementById(id);
 function save(){
- localStorage.setItem("pechegorSave",JSON.stringify({money,energy,hunger,happy,questDone}));
+ try{
+  localStorage.setItem(SAVE_KEY,JSON.stringify({
+   money,
+   energy,
+   hunger,
+   happy,
+   indoors,
+   questDone,
+   playerX:player.position.x,
+   playerZ:player.position.z,
+   playerRotation:player.rotation.y,
+   cameraYaw,
+   cameraPitch,
+   cameraDistance
+  }));
+ }catch(e){
+  console.log("Не удалось сохранить игру",e);
+ }
 }
+
+function manualSave(){
+ save();
+ say("💾 Игра сохранена!");
+}
+
 function hud(){
  $("money").textContent=money;
  $("energy").textContent=Math.round(energy);
@@ -208,109 +309,232 @@ function hud(){
  $("happy").textContent=Math.round(happy);
  save();
 }
+
 function say(text){
- const el=$("message");el.textContent=text;el.style.display="block";
- clearTimeout(say.timer);say.timer=setTimeout(()=>el.style.display="none",2200);
+ const el=$("message");
+ el.textContent=text;
+ el.style.display="block";
+ clearTimeout(say.timer);
+ say.timer=setTimeout(()=>el.style.display="none",2200);
 }
+
 function openPanel(title,text,buttons){
  panelOpen=true;
  $("panelTitle").textContent=title;
  $("panelText").textContent=text;
- const box=$("panelButtons");box.innerHTML="";
+
+ const box=$("panelButtons");
+ box.innerHTML="";
+
  buttons.forEach(b=>{
   const btn=document.createElement("button");
-  btn.textContent=b.label;btn.onclick=b.action;box.appendChild(btn);
+  btn.textContent=b.label;
+  btn.onclick=b.action;
+  box.appendChild(btn);
  });
+
  $("panel").style.display="block";
 }
-function closePanel(){
- panelOpen=false;$("panel").style.display="none";
-}
-function button(label,action){return {label,action};}
 
-// Действия игрока
+function closePanel(){
+ panelOpen=false;
+ $("panel").style.display="none";
+ save();
+}
+
+function button(label,action){
+ return {label,action};
+}
+
+// Действия
 function work(){
- if(energy<20||hunger<10){say("Нужно отдохнуть или поесть!");return;}
- if(Date.now()-lastWork<2500){say("Немного подожди.");return;}
+ if(energy<20||hunger<10){
+  say("Нужно отдохнуть или поесть!");
+  return;
+ }
+
+ if(Date.now()-lastWork<2500){
+  say("Немного подожди.");
+  return;
+ }
+
  lastWork=Date.now();
- money+=250;energy-=20;hunger-=10;hud();
+ money+=250;
+ energy-=20;
+ hunger-=10;
+ hud();
  say("Работа выполнена! +250 ₽");
 }
+
 function eat(){
- if(money<100){say("Не хватает денег на еду.");return;}
- money-=100;hunger=Math.min(100,hunger+35);hud();
+ if(money<100){
+  say("Не хватает денег на еду.");
+  return;
+ }
+
+ money-=100;
+ hunger=Math.min(100,hunger+35);
+ hud();
  say("Ты перекусил.");
 }
+
 function rest(){
  energy=Math.min(100,energy+35);
- happy=Math.min(100,happy+10);hud();
+ happy=Math.min(100,happy+10);
+ hud();
  say("Ты отдохнул.");
 }
+
 function shop(){
  openPanel("🛒 Магазин","Выбери покупку.",[
- button("🍞 Еда — 100 ₽",()=>{if(money>=100){money-=100;hunger=Math.min(100,hunger+35);say("Куплена еда!");}else say("Не хватает денег.");hud();}),
- button("🧸 Игрушка — 200 ₽",()=>{if(money>=200){money-=200;happy=Math.min(100,happy+20);say("Куплена игрушка!");}else say("Не хватает денег.");hud();}),
- button("🌸 Цветок — 150 ₽",()=>{if(money>=150){money-=150;happy=Math.min(100,happy+15);say("Куплен цветок!");}else say("Не хватает денег.");hud();})
+  button("🍞 Еда — 100 ₽",()=>{
+   if(money>=100){
+    money-=100;
+    hunger=Math.min(100,hunger+35);
+    say("Куплена еда!");
+   }else say("Не хватает денег.");
+   hud();
+  }),
+  button("🧸 Игрушка — 200 ₽",()=>{
+   if(money>=200){
+    money-=200;
+    happy=Math.min(100,happy+20);
+    say("Куплена игрушка!");
+   }else say("Не хватает денег.");
+   hud();
+  }),
+  button("🌸 Цветок — 150 ₽",()=>{
+   if(money>=150){
+    money-=150;
+    happy=Math.min(100,happy+15);
+    say("Куплен цветок!");
+   }else say("Не хватает денег.");
+   hud();
+  })
  ]);
 }
+
 function casino(){
- openPanel("🎰 Казино","Игровая валюта. Победа приносит x2 ставки.",[
- ...[
-  [250,40],[450,30],[650,25],[1000,10]
- ].map(([bet,chance])=>button("Поставить "+bet+" ₽ — шанс "+chance+"%",()=>{
-  if(money<bet){say("Не хватает игровой валюты.");return;}
-  money-=bet;
-  if(Math.random()*100<chance){money+=bet*2;say("Победа! Ты выиграл "+bet*2+" ₽");}
-  else say("В этот раз не повезло. Ставка потеряна.");
-  hud();
- }))
+ openPanel("🎰 Казино","Только игровая валюта. Победа приносит x2 ставки.",[
+  ...[[250,40],[450,30],[650,25],[1000,10]].map(([bet,chance])=>
+   button("Поставить "+bet+" ₽ — шанс "+chance+"%",()=>{
+    if(money<bet){
+     say("Не хватает игровой валюты.");
+     return;
+    }
+
+    money-=bet;
+
+    if(Math.random()*100<chance){
+     money+=bet*2;
+     say("Победа! Ты выиграл "+bet*2+" ₽");
+    }else{
+     say("В этот раз не повезло. Ставка потеряна.");
+    }
+
+    hud();
+   })
+  )
  ]);
 }
+
 function townHall(){
- if(questDone){say("Задание уже выполнено.");return;}
+ if(questDone){
+  say("Задание уже выполнено.");
+  return;
+ }
+
  openPanel("🏛 Ратуша","Выполни простое задание и получи 150 ₽.",[
- button("Получить награду",()=>{
-  if(!questDone){questDone=true;money+=150;hud();say("Задание выполнено! +150 ₽");}
-  closePanel();
- })
+  button("Получить награду",()=>{
+   if(!questDone){
+    questDone=true;
+    money+=150;
+    hud();
+    say("Задание выполнено! +150 ₽");
+   }
+   closePanel();
+  })
  ]);
 }
+
 function enterHome(){
  indoors=true;
- world.visible=false;inside.visible=true;
+ world.visible=false;
+ inside.visible=true;
  player.position.set(100,0,101);
- camera.position.set(100,8,111);
+ save();
  say("Ты вошёл домой.");
 }
+
 function leaveHome(){
  indoors=false;
- inside.visible=false;world.visible=true;
+ inside.visible=false;
+ world.visible=true;
  player.position.set(-18,0,-5);
+ save();
  say("Ты вышел из дома.");
 }
+
+// Взаимодействие
 function interact(){
  if(panelOpen)return;
+
  if(indoors){
-  const x=player.position.x-100,z=player.position.z-100;
-  // Дверь
-  if(z>4.3&&Math.abs(x)<2.8){leaveHome();return;}
-  let near=null,dist=Infinity;
+  const x=player.position.x-100;
+  const z=player.position.z-100;
+
+  if(z>4.3&&Math.abs(x)<2.8){
+   leaveHome();
+   return;
+  }
+
+  let near=null;
+  let dist=Infinity;
+
   for(const f of furniture){
    const d=Math.hypot(x-f.x,z-f.z);
-   if(d<dist){dist=d;near=f;}
+   if(d<dist){
+    dist=d;
+    near=f;
+   }
   }
-  if(!near||dist>3){say("Подойди ближе к мебели или двери.");return;}
+
+  if(!near||dist>3){
+   say("Подойди ближе к мебели или двери.");
+   return;
+  }
+
   if(near.name==="Кровать"){
    openPanel("🛏 Кровать","Поспать и восстановить силы?",[
-    button("Поспать",()=>{energy=100;hunger=Math.max(0,hunger-5);happy=Math.min(100,happy+15);hud();say("Ты хорошо отдохнул!");closePanel();})
+    button("Поспать",()=>{
+     energy=100;
+     hunger=Math.max(0,hunger-5);
+     happy=Math.min(100,happy+15);
+     hud();
+     say("Ты хорошо отдохнул!");
+     closePanel();
+    })
    ]);
   }else if(near.name==="Телевизор"){
    openPanel("📺 Телевизор","Посмотреть передачу?",[
-    button("Смотреть",()=>{happy=Math.min(100,happy+15);hud();say("Настроение улучшилось!");closePanel();})
+    button("Смотреть",()=>{
+     happy=Math.min(100,happy+15);
+     hud();
+     say("Настроение улучшилось!");
+     closePanel();
+    })
    ]);
   }else if(near.name==="Холодильник"){
    openPanel("🧊 Холодильник","Взять еду за 100 ₽?",[
-    button("Взять еду",()=>{if(money>=100){money-=100;hunger=Math.min(100,hunger+35);hud();say("Ты поел.");}else say("Не хватает денег.");closePanel();})
+    button("Взять еду",()=>{
+     if(money>=100){
+      money-=100;
+      hunger=Math.min(100,hunger+35);
+      hud();
+      say("Ты поел.");
+     }else say("Не хватает денег.");
+     closePanel();
+    })
    ]);
   }else{
    say(near.name+" — уютная мебель.");
@@ -318,14 +542,24 @@ function interact(){
   return;
  }
 
- // ВАЖНО: определяем ближайшее здание и проверяем радиус.
- // Казино не откроется, если игрок стоит возле другого здания.
- let nearest=null,best=Infinity;
+ // Каждое здание проверяется отдельно.
+ // Ближайшее казино не откроется, если игрок далеко от него.
+ let nearest=null;
+ let best=Infinity;
+
  for(const b of buildings){
   const d=Math.hypot(player.position.x-b.x,player.position.z-b.z);
-  if(d<best){best=d;nearest=b;}
+  if(d<best){
+   best=d;
+   nearest=b;
+  }
  }
- if(!nearest||best>7){say("Подойди к зданию поближе.");return;}
+
+ if(!nearest||best>7){
+  say("Подойди к зданию поближе.");
+  return;
+ }
+
  switch(nearest.name){
   case "Дом":enterHome();break;
   case "Магазин":shop();break;
@@ -333,107 +567,249 @@ function interact(){
   case "Казино":casino();break;
  }
 }
-window.interact=interact;
-window.work=work;window.eat=eat;window.rest=rest;
-window.closePanel=closePanel;
 
-// Управление
+window.interact=interact;
+window.work=work;
+window.eat=eat;
+window.rest=rest;
+window.closePanel=closePanel;
+window.manualSave=manualSave;
+
+// Клавиатура
 const keys={};
+
 addEventListener("keydown",e=>{
  keys[e.key.toLowerCase()]=true;
  if(e.key.toLowerCase()==="e")interact();
 });
-addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 
-let joyX=0,joyY=0;
-const control=$("controls"),stick=$("stick");
-let pointer=null;
-control.addEventListener("pointerdown",e=>{
- pointer=e.pointerId;control.setPointerCapture(pointer);moveJoy(e);
+addEventListener("keyup",e=>{
+ keys[e.key.toLowerCase()]=false;
 });
-control.addEventListener("pointermove",e=>{if(pointer===e.pointerId)moveJoy(e);});
+
+// Джойстик
+let joyX=0,joyY=0;
+const control=$("controls");
+const stick=$("stick");
+let joyPointer=null;
+
+control.addEventListener("pointerdown",e=>{
+ joyPointer=e.pointerId;
+ control.setPointerCapture(joyPointer);
+ moveJoy(e);
+});
+
+control.addEventListener("pointermove",e=>{
+ if(joyPointer===e.pointerId)moveJoy(e);
+});
+
 function moveJoy(e){
  const r=control.getBoundingClientRect();
  let x=e.clientX-(r.left+r.width/2);
  let y=e.clientY-(r.top+r.height/2);
- const len=Math.hypot(x,y),max=43;
- if(len>max){x=x/len*max;y=y/len*max;}
- joyX=x/max;joyY=y/max;
- stick.style.left=(37+x)+"px";stick.style.top=(37+y)+"px";
+ const len=Math.hypot(x,y);
+ const max=43;
+
+ if(len>max){
+  x=x/len*max;
+  y=y/len*max;
+ }
+
+ joyX=x/max;
+ joyY=y/max;
+ stick.style.left=(37+x)+"px";
+ stick.style.top=(37+y)+"px";
 }
+
 function resetJoy(){
- pointer=null;joyX=0;joyY=0;
- stick.style.left="37px";stick.style.top="37px";
+ joyPointer=null;
+ joyX=0;
+ joyY=0;
+ stick.style.left="37px";
+ stick.style.top="37px";
 }
+
 control.addEventListener("pointerup",resetJoy);
 control.addEventListener("pointercancel",resetJoy);
 
-// Простые препятствия снаружи
+// ВРАЩЕНИЕ КАМЕРЫ
+let draggingCamera=false;
+let lastPointerX=0;
+let lastPointerY=0;
+let cameraPointer=null;
+
+renderer.domElement.addEventListener("pointerdown",e=>{
+ if(e.button!==0&&e.pointerType==="mouse")return;
+
+ draggingCamera=true;
+ cameraPointer=e.pointerId;
+ lastPointerX=e.clientX;
+ lastPointerY=e.clientY;
+
+ renderer.domElement.setPointerCapture(e.pointerId);
+});
+
+renderer.domElement.addEventListener("pointermove",e=>{
+ if(!draggingCamera||e.pointerId!==cameraPointer)return;
+
+ const dx=e.clientX-lastPointerX;
+ const dy=e.clientY-lastPointerY;
+
+ cameraYaw-=dx*.008;
+ cameraPitch=Math.max(-.15,Math.min(1.2,cameraPitch+dy*.006));
+
+ lastPointerX=e.clientX;
+ lastPointerY=e.clientY;
+});
+
+function stopCameraDrag(){
+ draggingCamera=false;
+ cameraPointer=null;
+ save();
+}
+
+renderer.domElement.addEventListener("pointerup",stopCameraDrag);
+renderer.domElement.addEventListener("pointercancel",stopCameraDrag);
+
+renderer.domElement.addEventListener("wheel",e=>{
+ cameraDistance=Math.max(5,Math.min(22,cameraDistance+e.deltaY*.01));
+ save();
+},{passive:true});
+
+renderer.domElement.addEventListener("contextmenu",e=>e.preventDefault());
+
+// Препятствия
 const obstacles=[
- {x:-18,z:-12,r:5.5},{x:17,z:-13,r:5.5},
- {x:-18,z:16,r:5.5},{x:18,z:17,r:5.5}
+ {x:-18,z:-12,r:5.5},
+ {x:17,z:-13,r:5.5},
+ {x:-18,z:16,r:5.5},
+ {x:18,z:17,r:5.5}
 ];
+
 function canMove(x,z){
  if(Math.abs(x)>48||Math.abs(z)>48)return false;
+
  if(indoors){
-  const lx=x-100,lz=z-100;
+  const lx=x-100;
+  const lz=z-100;
+
   if(Math.abs(lx)>5.2||Math.abs(lz)>5.2)return false;
-  // Не проходить сквозь стены, но оставить дверной проём на юге.
+
   if(lz>4.7&&Math.abs(lx)>2.5)return false;
+
   return true;
  }
+
  for(const o of obstacles){
   if(Math.hypot(x-o.x,z-o.z)<o.r)return false;
  }
+
  return true;
 }
 
-// Камера и анимация
+// Камера и игровой цикл
 const clock=new THREE.Clock();
 let walkTime=0;
+
 function animate(){
  requestAnimationFrame(animate);
+
  const dt=Math.min(clock.getDelta(),.05);
+
  let mx=0,mz=0;
+
  if(keys.w||keys.arrowup)mz-=1;
  if(keys.s||keys.arrowdown)mz+=1;
  if(keys.a||keys.arrowleft)mx-=1;
  if(keys.d||keys.arrowright)mx+=1;
- mx+=joyX;mz+=joyY;
+
+ mx+=joyX;
+ mz+=joyY;
+
  const len=Math.hypot(mx,mz);
- if(len>1){mx/=len;mz/=len;}
+
+ if(len>1){
+  mx/=len;
+  mz/=len;
+ }
+
  if(!panelOpen&&len>.05&&energy>0){
   const speed=indoors?3:5;
+
   const nx=player.position.x+mx*speed*dt;
   const nz=player.position.z+mz*speed*dt;
+
   if(canMove(nx,player.position.z))player.position.x=nx;
   if(canMove(player.position.x,nz))player.position.z=nz;
+
   energy=Math.max(0,energy-dt*.65);
   happy=Math.min(100,happy+dt*.04);
+
   walkTime+=dt*9;
   armL.rotation.x=Math.sin(walkTime)*.55;
   armR.rotation.x=-Math.sin(walkTime)*.55;
+
   player.rotation.y=Math.atan2(mx,mz);
  }else{
-  armL.rotation.x*=.85;armR.rotation.x*=.85;
+  armL.rotation.x*=.85;
+  armR.rotation.x*=.85;
  }
- if(indoors){
-  camera.position.lerp(new THREE.Vector3(player.position.x,7,player.position.z+10),.08);
- }else{
-  camera.position.lerp(new THREE.Vector3(player.position.x,8,player.position.z+11),.08);
- }
- camera.lookAt(player.position.x,1.5,player.position.z);
+
+ // Камера вращается вокруг персонажа
+ const target=new THREE.Vector3(
+  player.position.x,
+  player.position.y+1.5,
+  player.position.z
+ );
+
+ const horizontal=cameraDistance*Math.cos(cameraPitch);
+
+ const cameraTarget=new THREE.Vector3(
+  target.x+Math.sin(cameraYaw)*horizontal,
+  target.y+cameraDistance*Math.sin(cameraPitch),
+  target.z+Math.cos(cameraYaw)*horizontal
+ );
+
+ camera.position.lerp(cameraTarget,.15);
+ camera.lookAt(target);
+
  renderer.render(scene,camera);
+
  hudTimer+=dt;
- if(hudTimer>1){hud();hudTimer=0;}
+ saveTimer+=dt;
+
+ if(hudTimer>1){
+  $("money").textContent=money;
+  $("energy").textContent=Math.round(energy);
+  $("hunger").textContent=Math.round(hunger);
+  $("happy").textContent=Math.round(happy);
+  hudTimer=0;
+ }
+
+ // Автоматическое сохранение раз в 2 секунды
+ if(saveTimer>2){
+  save();
+  saveTimer=0;
+ }
 }
-let hudTimer=0;
+
+// Уменьшение голода
 setInterval(()=>{
  hunger=Math.max(0,hunger-.4);
  if(hunger===0)energy=Math.max(0,energy-.7);
 },5000);
 
-hud();
+// Сохранение при закрытии или перезагрузке страницы
+addEventListener("beforeunload",save);
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden)save();
+});
+
+$("money").textContent=money;
+$("energy").textContent=Math.round(energy);
+$("hunger").textContent=Math.round(hunger);
+$("happy").textContent=Math.round(happy);
+
 animate();
 
 addEventListener("resize",()=>{
