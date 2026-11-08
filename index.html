@@ -7,594 +7,440 @@
 <title>Печегор 3D</title>
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Arial;background:#8cc9e8}
-canvas{display:block}
-#hud{position:fixed;top:8px;left:8px;z-index:2;background:#17251de8;color:white;padding:10px;border-radius:12px;width:180px;font-size:12px}
-#money{font-size:17px;color:#ffdf75;font-weight:bold}
-.stat{margin-top:6px}
-.track{height:7px;background:#455448;border-radius:8px;overflow:hidden}
-.fill{height:100%;background:#70d879;width:100%}
-#message{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:3;background:#17251de8;color:white;padding:9px;border-radius:10px;font-size:12px;text-align:center;max-width:50%}
-#joystick{position:fixed;left:20px;bottom:20px;width:130px;height:130px;border-radius:50%;background:#ffffff55;border:3px solid #ffffffaa;z-index:4;touch-action:none}
-#stick{position:absolute;left:50%;top:50%;width:55px;height:55px;transform:translate(-50%,-50%);border-radius:50%;background:#f1c76c;border:3px solid white;pointer-events:none}
-#actions{position:fixed;right:8px;bottom:12px;z-index:4;display:grid;grid-template-columns:repeat(2,88px);gap:6px}
-button{border:0;border-radius:10px;padding:10px 5px;background:#e9bd65;color:#29251c;font-weight:bold;font-size:12px}
-button:active{transform:scale(.96)}
-#modal{display:none;position:fixed;inset:0;z-index:10;background:#000a;align-items:center;justify-content:center;padding:12px}
-#box{background:#293d30;color:white;border-radius:15px;padding:18px;width:min(370px,95vw);text-align:center}
-#modalButtons{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:12px}
-@media(max-height:430px){
- #joystick{width:105px;height:105px;bottom:10px}
- #stick{width:45px;height:45px}
- #actions{grid-template-columns:repeat(2,75px);bottom:5px}
- button{padding:7px 3px;font-size:10px}
-}
+body{margin:0;overflow:hidden;font-family:Arial;background:#87ceeb;color:white}
+#hud{position:fixed;top:8px;left:8px;z-index:5;background:#17251ddc;padding:10px;border-radius:12px;font-size:14px;line-height:1.7}
+#message{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#17251de8;padding:10px 16px;border-radius:12px;z-index:8;display:none;text-align:center}
+#panel{display:none;position:fixed;z-index:10;left:50%;top:50%;transform:translate(-50%,-50%);width:min(340px,90vw);background:#24382e;color:white;padding:20px;border:2px solid #91b69a;border-radius:16px;text-align:center}
+#panel button{display:block;width:100%;padding:12px;margin-top:9px;border:0;border-radius:9px;background:#69a86f;color:white;font-size:16px}
+#panel button.close{background:#a34e4e}
+#controls{position:fixed;bottom:18px;left:15px;z-index:5;width:130px;height:130px;border-radius:50%;background:#ffffff35;border:2px solid #ffffff77;touch-action:none}
+#stick{position:absolute;width:52px;height:52px;left:37px;top:37px;border-radius:50%;background:#ffffffbb;pointer-events:none}
+#actions{position:fixed;bottom:20px;right:12px;z-index:5;display:grid;grid-template-columns:repeat(2,75px);gap:8px}
+#actions button{height:58px;border:0;border-radius:14px;background:#24382edc;color:white;font-weight:bold;font-size:12px}
+button:active{filter:brightness(1.3)}
+#help{position:fixed;bottom:4px;left:50%;transform:translateX(-50%);font-size:11px;color:#fff;text-shadow:1px 1px 2px #000;white-space:nowrap}
 </style>
 </head>
 <body>
-
 <div id="hud">
- <div id="money">💰 1000 ₽</div>
- <div class="stat">⚡ Выносливость: <b id="energyText">100</b><div class="track"><div class="fill" id="energyBar"></div></div></div>
- <div class="stat">🍗 Голод: <b id="hungerText">100</b><div class="track"><div class="fill" id="hungerBar"></div></div></div>
- <div class="stat">😊 Счастье: <b id="happyText">70</b><div class="track"><div class="fill" id="happyBar"></div></div></div>
- <div>📍 <b id="place">Деревня</b></div>
+<b>🏡 ПЕЧЕГОР 3D</b><br>
+💰 Деньги: <span id="money">1000</span> ₽<br>
+⚡ Энергия: <span id="energy">100</span><br>
+🍗 Голод: <span id="hunger">100</span><br>
+😊 Радость: <span id="happy">70</span>
 </div>
-
-<div id="message">Добро пожаловать в Печегор!</div>
-<div id="joystick"><div id="stick"></div></div>
-
+<div id="message"></div>
+<div id="panel">
+<h2 id="panelTitle">Меню</h2>
+<p id="panelText"></p>
+<div id="panelButtons"></div>
+<button class="close" onclick="closePanel()">Закрыть</button>
+</div>
+<div id="controls"><div id="stick"></div></div>
 <div id="actions">
- <button onclick="work()">💼 Работа</button>
- <button onclick="eat()">🍞 Поесть</button>
- <button onclick="rest()">🛏 Отдых</button>
- <button onclick="walk()">🌳 Прогулка</button>
- <button onclick="shop()">🛒 Магазин</button>
- <button onclick="casino()">🎰 Казино</button>
- <button onclick="interact()">🚪 Действие</button>
+<button onclick="interact()">🤝 Взаимодействие</button>
+<button onclick="work()">💼 Работа</button>
+<button onclick="eat()">🍞 Поесть</button>
+<button onclick="rest()">🛏 Отдых</button>
 </div>
-
-<div id="modal">
- <div id="box">
-  <h2 id="modalTitle"></h2>
-  <p id="modalText"></p>
-  <div id="modalButtons"></div>
-  <button onclick="closeModal()">Закрыть</button>
- </div>
-</div>
+<div id="help">WASD / стрелки — движение · E — взаимодействие</div>
 
 <script type="importmap">
 {"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}
 </script>
-
 <script type="module">
 import * as THREE from "three";
 
-// -------------------------
-// ОСНОВА
-// -------------------------
-
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x9bd5ed);
-scene.fog=new THREE.Fog(0x9bd5ed,45,110);
+scene.background=new THREE.Color(0x87ceeb);
+scene.fog=new THREE.Fog(0x87ceeb,35,100);
 
-const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,250);
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,200);
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true;
-document.body.prepend(renderer.domElement);
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
 
-scene.add(new THREE.HemisphereLight(0xffffff,0x557044,2));
-const sun=new THREE.DirectionalLight(0xffffff,1.7);
-sun.position.set(-20,35,15);
+scene.add(new THREE.HemisphereLight(0xffffff,0x637b50,2));
+const sun=new THREE.DirectionalLight(0xffffff,2);
+sun.position.set(-20,30,20);
 sun.castShadow=true;
 scene.add(sun);
 
-const world=new THREE.Group();
-const homeInterior=new THREE.Group();
-scene.add(world,homeInterior);
-
 const mat=c=>new THREE.MeshStandardMaterial({color:c});
+const materials={
+grass:mat(0x65a84b),road:mat(0xb5a27a),wood:mat(0x8a542e),
+roof:mat(0x9d3730),white:mat(0xe5dfca),blue:mat(0x2874bd),
+darkblue:mat(0x183c79),skin:mat(0xe5ae7e),black:mat(0x252525),
+green:mat(0x337d38),red:mat(0xb83d32),glass:mat(0x6bb6d4),
+yellow:mat(0xd8b43b),purple:mat(0x8051aa)
+};
+
 function block(parent,w,h,d,color,x,y,z){
- const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));
- mesh.position.set(x,y,z);
- mesh.castShadow=true;
- mesh.receiveShadow=true;
- parent.add(mesh);
- return mesh;
+ const surface=color&&color.isMaterial?color:mat(color);
+ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),surface);
+ m.position.set(x,y,z);
+ m.castShadow=true;m.receiveShadow=true;
+ parent.add(m);return m;
+}
+function group(parent,x,y,z){
+ const g=new THREE.Group();g.position.set(x,y,z);parent.add(g);return g;
 }
 
-// -------------------------
-// ДЕРЕВНЯ
-// -------------------------
+const world=new THREE.Group();scene.add(world);
+const inside=new THREE.Group();scene.add(inside);inside.visible=false;
 
-block(world,120,.3,120,0x65a94d,0,-.2,0);
-block(world,7,.08,100,0xc6ad7d,0,0,0);
-block(world,100,.08,7,0xc6ad7d,0,.01,0);
+block(world,200,.2,200,materials.grass,0,-.15,0);
+block(world,10,.08,200,materials.road,0,-.03,0);
+block(world,200,.08,8,materials.road,0,-.02,0);
 
 // Озеро
-block(world,18,.15,13,0x379bc9,20,.02,-18);
-
-const buildings=[];
-function houseOutside(name,x,z,color){
- block(world,8,5,7,color,x,2.5,z);
- const roof=block(world,9,1,8,0x8c4332,x,5.5,z);
- roof.rotation.z=.12;
- block(world,1.5,2.5,.2,0x553622,x,1.25,z+3.61);
- buildings.push({name,x,z});
-}
-houseOutside("Дом",-13,-12,0xd9bd8c);
-houseOutside("Магазин",12,8,0xd9a85e);
-houseOutside("Ратуша",-13,12,0xd8d8c8);
-houseOutside("Казино",14,-5,0xb77bc4);
+const lake=block(world,15,.15,10,materials.glass,-25,-.03,20);
+lake.material.transparent=true;lake.material.opacity=.8;
 
 // Деревья
-for(let i=0;i<45;i++){
- const x=Math.random()*100-50;
- const z=Math.random()*100-50;
- if(Math.abs(x)<10&&Math.abs(z)<10)continue;
- block(world,.6,2,.6,0x704329,x,1,z);
- const crown=new THREE.Mesh(
-  new THREE.BoxGeometry(2.5,2.5,2.5),
-  mat(0x287b3d)
- );
- crown.position.set(x,3,z);
- world.add(crown);
+for(let i=0;i<38;i++){
+ const x=Math.sin(i*12.7)*42;
+ const z=Math.cos(i*8.1)*42;
+ if(Math.abs(x)<12||Math.abs(z)<10)continue;
+ block(world,.7,2,.7,materials.wood,x,1,z);
+ const crown=block(world,2.8,2.8,2.8,materials.green,x,3,z);
 }
 
-// -------------------------
-// ПЕРСОНАЖ В СТИЛЕ СТИВА
-// -------------------------
-
-const player=new THREE.Group();
-scene.add(player);
-
-const character=new THREE.Group();
-player.add(character);
-
-const skin=mat(0xc58b61);
-const shirt=mat(0x287bc0);
-const pants=mat(0x303c91);
-const shoes=mat(0x44342c);
-const hair=mat(0x493020);
-
-function part(parent,w,h,d,material,x,y,z){
- return block(parent,w,h,d,material,x,y,z);
+// Здания
+const buildings=[];
+function building(name,x,z,wall,roof){
+ const g=group(world,x,0,z);
+ block(g,8,5,7,wall,0,2.5,0);
+ block(g,8.8,.8,7.8,roof,0,5.4,0);
+ block(g,1.5,2.8,.2,materials.wood,0,1.4,3.61);
+ block(g,1,1.2,.1,materials.glass,0,3,3.7);
+ buildings.push({name,x,z,g});
 }
+building("Дом",-18,-12,0xe4c89a,0x9e4033);
+building("Магазин",17,-13,0xd8e0c4,0x39844c);
+building("Ратуша",-18,16,0xd5d2c0,0x5477a4);
+building("Казино",18,17,0xd9b9dc,0x8744a0);
 
-// Туловище
-part(character,1,1.2,.5,shirt,0,1.55,0);
-
-// Голова
-part(character,.85,.85,.85,skin,0,2.6,0);
-
-// Волосы
-part(character,.87,.25,.87,hair,0,3.13,0);
-part(character,.87,.5,.12,hair,0,2.95,-.39);
-
-// Глаза
-part(character,.13,.12,.04,mat(0xffffff),-.2,2.68,-.44);
-part(character,.13,.12,.04,mat(0xffffff),.2,2.68,-.44);
-part(character,.06,.12,.03,mat(0x2222aa),-.2,2.68,-.47);
-part(character,.06,.12,.03,mat(0x2222aa),.2,2.68,-.47);
-
-// Ноги с шарнирами
-function makeLimb(material,x,y,length){
- const pivot=new THREE.Group();
- pivot.position.set(x,y,0);
- character.add(pivot);
- part(pivot,.4,length,.45,material,0,-length/2,0);
- return pivot;
+// Таблички над зданиями
+function label(text,x,z){
+ const canvas=document.createElement("canvas");
+ canvas.width=512;canvas.height=128;
+ const c=canvas.getContext("2d");
+ c.fillStyle="#24382e";c.fillRect(0,0,512,128);
+ c.fillStyle="white";c.font="bold 48px Arial";c.textAlign="center";
+ c.fillText(text,256,82);
+ const texture=new THREE.CanvasTexture(canvas);
+ const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture}));
+ sprite.position.set(x,8,z);sprite.scale.set(7,1.8,1);world.add(sprite);
 }
-const leftLeg=makeLimb(pants,-.25,.95,.9);
-const rightLeg=makeLimb(pants,.25,.95,.9);
+label("🏠 ДОМ",-18,-12);
+label("🛒 МАГАЗИН",17,-13);
+label("🏛 РАТУША",-18,16);
+label("🎰 КАЗИНО",18,17);
 
-// Обувь
-part(leftLeg,.42,.22,.5,shoes,0,-.83,-.04);
-part(rightLeg,.42,.22,.5,shoes,0,-.83,-.04);
+// Персонаж
+const player=group(world,0,0,0);
+const torso=block(player,1.1,1.4,.55,materials.blue,0,1.9,0);
+const head=block(player,.9,.9,.9,materials.skin,0,3.05,0);
+block(player,.13,.13,.05,materials.black,-.2,3.15,.46);
+block(player,.13,.13,.05,materials.black,.2,3.15,.46);
+block(player,.5,.65,.5,materials.darkblue,-.3,.85,0);
+block(player,.5,.65,.5,materials.darkblue,.3,.85,0);
+const armL=block(player,.35,1.3,.4,materials.blue,-.8,1.95,0);
+const armR=block(player,.35,1.3,.4,materials.blue,.8,1.95,0);
 
-// Руки
-const leftArm=makeLimb(shirt,-.68,2.05,.95);
-const rightArm=makeLimb(shirt,.68,2.05,.95);
-part(leftArm,.4,.25,.45,skin,0,-.94,0);
-part(rightArm,.4,.25,.45,skin,0,-.94,0);
+// Дом внутри
+block(inside,12,.2,12,0x987d59,100,-.1,100);
+block(inside,12,.3,.3,0xe6d5b5,100,3,94);
+block(inside,12,.3,.3,0xe6d5b5,100,3,106);
+block(inside,.3,3,12,0xe6d5b5,94,1.5,100);
+block(inside,.3,3,12,0xe6d5b5,106,1.5,100);
+// Внутренние стены и дверь
+block(inside,4,3,.3,0xe6d5b5,97,1.5,106);
+block(inside,4,3,.3,0xe6d5b5,103,1.5,106);
 
-player.position.set(0,0,5);
-
-// -------------------------
-// ДОМ ВНУТРИ
-// -------------------------
-
-// Дом стоит отдельной комнатой в другой части мира.
-// При входе персонаж переносится внутрь.
-
-const room=new THREE.Group();
-homeInterior.add(room);
-
-// Пол и стены
-block(room,18,.3,16,0xb78b58,0,-.15,0);
-block(room,18,5,.3,0xe4d3ae,0,2.5,-8);
-block(room,.3,5,16,0xe4d3ae,-9,2.5,0);
-block(room,.3,5,16,0xe4d3ae,9,2.5,0);
-block(room,18,5,.3,0xe4d3ae,0,2.5,8);
-
-// Потолок
-block(room,18,.3,16,0xd2b88c,0,5,0);
-
-// Ковёр
-block(room,7,.08,5,0x9e3737,-3,.05,-2);
-
-// Гостиная: диван
-block(room,4,.8,1.3,0x3869a5,-3,.55,-5);
-block(room,4,1.4,.35,0x28548d,-3,1.2,-5.55);
-block(room,.35,1,.9,0x28548d,-5,1,-5);
-block(room,.35,1,.9,0x28548d,-1,1,-5);
-
-// Кресло
-block(room,1.6,.7,1.4,0x4b8a58,3,.5,-5);
-block(room,1.6,1,.3,0x397348,3,1,-5.7);
-
-// Телевизор и тумба
-block(room,3,.5,.8,0x754b2d,3,.25,-1);
-block(room,2.3,1.4,.15,0x202020,3,1.2,-1.2);
-block(room,2.1,1.2,.05,0x438fc5,3,1.2,-1.31);
-
-// Спальня
-block(room,4,.5,2.7,0x70462f,-4,.4,3);
-block(room,3.8,.35,2.5,0xe7e1d6,-4,.8,3);
-block(room,1.6,.25,1,0xffffff,-4,1,3.7);
-block(room,1.5,2.5,.8,0x80502f,-7,1.25,5);
-block(room,1.8,.25,.9,0x9b693d,-7,2.6,5);
-
-// Кухня
-block(room,5,1,.9,0x8d5834,4,.6,4);
-block(room,5,.15,1,0xd6c8a6,4,1.15,4);
-block(room,1.3,2,1,0xcccccc,7,1,6);
-block(room,.8,.15,.8,0x252525,4.5,1.3,4);
-block(room,.8,.15,.8,0x252525,2.8,1.3,4);
-
-// Холодильник
-block(room,1.4,2.8,1,0xd9e0e5,7,1.4,-2);
-block(room,.08,1,.1,0x666666,6.3,1.4,-1.45);
-
-// Стол и стулья
-block(room,3,.25,2,0x8a572f,3,1,1);
-for(const x of [2,4]){
- block(room,.3,1,.3,0x70462f,x,.5,0);
- block(room,.3,1,.3,0x70462f,x,.5,2);
+// Мебель
+const furniture=[];
+function item(name,x,z,w,h,d,color){
+ const m=block(inside,w,h,d,color,100+x,h/2,100+z);
+ furniture.push({name,x,z,mesh:m});
+ return m;
 }
+item("Диван",-3,-3,3,1,1.2,0x3474a9);
+item("Кресло",-5,-1,1.5,1.2,1.5,0x7e4d9a);
+item("Телевизор",3,-4,2,.2,.3,0x222222);
+item("Кровать",-3,3,3,.6,2,0x4b8dc1);
+item("Шкаф",4,3,1.4,2.8,1,0x8a542e);
+item("Холодильник",4,-1,1.2,2.5,1,0xe8e8e8);
+item("Стол",0,1,2,.3,1.5,0x98612e);
+item("Плита",2,1,1.4,.9,1,0x444444);
+item("Тумбочка",-5,4,1,.8,1,0x8a542e);
 
-// Окна
-block(room,2,1.5,.08,0x72b8e5,0,2.7,-7.78);
-block(room,.12,1.6,.12,0xffffff,0,2.7,-7.7);
-block(room,2.2,.12,.12,0xffffff,0,2.7,-7.7);
-
-// Дверь
-block(room,1.8,2.8,.2,0x704329,0,1.4,7.8);
-
-// Свет в доме
-const roomLight=new THREE.PointLight(0xffe2a8,35,30);
-roomLight.position.set(0,4,0);
-room.add(roomLight);
-
-// Внутренние координаты
-room.position.set(100,0,100);
-
-// -------------------------
-// СОСТОЯНИЕ И ИНТЕРФЕЙС
-// -------------------------
-
+// Переменные
 let money=1000,energy=100,hunger=100,happy=70;
-let indoors=false;
-let questDone=false;
-let joyX=0,joyY=0;
-const keys={};
+let indoors=false,questDone=false;
+let panelOpen=false;
+let lastWork=0;
+let casinoBusy=false;
 
-function updateHUD(){
- document.getElementById("money").textContent="💰 "+money+" ₽";
- for(const [id,value] of [["energy",energy],["hunger",hunger],["happy",happy]]){
-  document.getElementById(id+"Text").textContent=Math.round(value);
-  document.getElementById(id+"Bar").style.width=value+"%";
+try{
+ const saved=JSON.parse(localStorage.getItem("pechegorSave")||"null");
+ if(saved){
+  money=saved.money??money;
+  energy=saved.energy??energy;
+  hunger=saved.hunger??hunger;
+  happy=saved.happy??happy;
+  questDone=saved.questDone??false;
  }
+}catch(e){}
+
+const $=id=>document.getElementById(id);
+function save(){
+ localStorage.setItem("pechegorSave",JSON.stringify({money,energy,hunger,happy,questDone}));
+}
+function hud(){
+ $("money").textContent=money;
+ $("energy").textContent=Math.round(energy);
+ $("hunger").textContent=Math.round(hunger);
+ $("happy").textContent=Math.round(happy);
+ save();
 }
 function say(text){
- document.getElementById("message").textContent=text;
+ const el=$("message");el.textContent=text;el.style.display="block";
+ clearTimeout(say.timer);say.timer=setTimeout(()=>el.style.display="none",2200);
 }
-function spend(amount){
- if(money<amount){say("Недостаточно денег!");return false}
- money-=amount;updateHUD();return true;
-}
-
-// -------------------------
-// ДЖОЙСТИК
-// -------------------------
-
-const joystick=document.getElementById("joystick");
-const stick=document.getElementById("stick");
-let activePointer=null;
-
-function moveStick(e){
- const r=joystick.getBoundingClientRect();
- let x=e.clientX-(r.left+r.width/2);
- let y=e.clientY-(r.top+r.height/2);
- const max=36,d=Math.hypot(x,y);
- if(d>max){x=x/d*max;y=y/d*max}
- joyX=x/max;joyY=y/max;
- stick.style.left=`calc(50% + ${x}px)`;
- stick.style.top=`calc(50% + ${y}px)`;
-}
-function stopStick(){
- activePointer=null;joyX=0;joyY=0;
- stick.style.left="50%";stick.style.top="50%";
-}
-joystick.addEventListener("pointerdown",e=>{
- activePointer=e.pointerId;
- joystick.setPointerCapture(e.pointerId);
- moveStick(e);
-});
-joystick.addEventListener("pointermove",e=>{
- if(e.pointerId===activePointer)moveStick(e);
-});
-joystick.addEventListener("pointerup",stopStick);
-joystick.addEventListener("pointercancel",stopStick);
-joystick.addEventListener("lostpointercapture",stopStick);
-
-window.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
-window.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
-
-// -------------------------
-// ИГРОВЫЕ ДЕЙСТВИЯ
-// -------------------------
-
-window.work=()=>{
- if(energy<20||hunger<10){say("Нужно отдохнуть или поесть!");return}
- money+=250;energy-=20;hunger-=10;
- say("Ты заработал 250 ₽!");updateHUD();
-};
-
-window.eat=()=>{
- if(!spend(100))return;
- hunger=Math.min(100,hunger+35);
- say("Ты поел.");updateHUD();
-};
-
-window.rest=()=>{
- energy=Math.min(100,energy+35);
- happy=Math.min(100,happy+10);
- say("Ты отдохнул.");updateHUD();
-};
-
-window.walk=()=>{
- if(energy<10){say("Не хватает выносливости!");return}
- energy-=10;happy=Math.min(100,happy+15);
- say("Прогулка подняла настроение!");updateHUD();
-};
-
-// -------------------------
-// ОКНА И МАГАЗИН
-// -------------------------
-
-function openModal(title,text,buttons){
- document.getElementById("modalTitle").textContent=title;
- document.getElementById("modalText").textContent=text;
- const area=document.getElementById("modalButtons");
- area.innerHTML="";
+function openPanel(title,text,buttons){
+ panelOpen=true;
+ $("panelTitle").textContent=title;
+ $("panelText").textContent=text;
+ const box=$("panelButtons");box.innerHTML="";
  buttons.forEach(b=>{
-  const el=document.createElement("button");
-  el.textContent=b.label;el.onclick=b.action;
-  area.appendChild(el);
+  const btn=document.createElement("button");
+  btn.textContent=b.label;btn.onclick=b.action;box.appendChild(btn);
  });
- document.getElementById("modal").style.display="flex";
+ $("panel").style.display="block";
 }
-window.closeModal=()=>{
- document.getElementById("modal").style.display="none";
-};
-
-window.shop=()=>{
- openModal("🛒 Магазин","Выбери покупку:",[
-  {label:"Еда — 100 ₽",action:()=>{
-   if(spend(100)){hunger=Math.min(100,hunger+35);say("Куплена еда!");updateHUD()}
-   closeModal();
-  }},
-  {label:"Игрушка — 200 ₽",action:()=>{
-   if(spend(200)){happy=Math.min(100,happy+20);say("Куплена игрушка!");updateHUD()}
-   closeModal();
-  }},
-  {label:"Цветок — 150 ₽",action:()=>{
-   if(spend(150)){happy=Math.min(100,happy+15);say("Куплен цветок!");updateHUD()}
-   closeModal();
-  }}
- ]);
-};
-
-// Казино с виртуальными игровыми монетами
-window.casino=()=>{
- openModal("🎰 Казино Печегора","Выбери ставку. При победе выплата — 2 ставки.",[
-  {label:"250 ₽ — 40%",action:()=>bet(250,.40)},
-  {label:"450 ₽ — 30%",action:()=>bet(450,.30)},
-  {label:"650 ₽ — 25%",action:()=>bet(650,.25)},
-  {label:"1000 ₽ — 10%",action:()=>bet(1000,.10)}
- ]);
-};
-function bet(stake,chance){
- if(!spend(stake)){closeModal();return}
- if(Math.random()<chance){
-  money+=stake*2;
-  say("🎉 Победа! Получено "+stake*2+" ₽!");
- }else say("В этот раз не повезло.");
- updateHUD();closeModal();
+function closePanel(){
+ panelOpen=false;$("panel").style.display="none";
 }
+function button(label,action){return {label,action};}
 
-// -------------------------
-// ДОМ И МЕБЕЛЬ
-// -------------------------
-
+// Действия игрока
+function work(){
+ if(energy<20||hunger<10){say("Нужно отдохнуть или поесть!");return;}
+ if(Date.now()-lastWork<2500){say("Немного подожди.");return;}
+ lastWork=Date.now();
+ money+=250;energy-=20;hunger-=10;hud();
+ say("Работа выполнена! +250 ₽");
+}
+function eat(){
+ if(money<100){say("Не хватает денег на еду.");return;}
+ money-=100;hunger=Math.min(100,hunger+35);hud();
+ say("Ты перекусил.");
+}
+function rest(){
+ energy=Math.min(100,energy+35);
+ happy=Math.min(100,happy+10);hud();
+ say("Ты отдохнул.");
+}
+function shop(){
+ openPanel("🛒 Магазин","Выбери покупку.",[
+ button("🍞 Еда — 100 ₽",()=>{if(money>=100){money-=100;hunger=Math.min(100,hunger+35);say("Куплена еда!");}else say("Не хватает денег.");hud();}),
+ button("🧸 Игрушка — 200 ₽",()=>{if(money>=200){money-=200;happy=Math.min(100,happy+20);say("Куплена игрушка!");}else say("Не хватает денег.");hud();}),
+ button("🌸 Цветок — 150 ₽",()=>{if(money>=150){money-=150;happy=Math.min(100,happy+15);say("Куплен цветок!");}else say("Не хватает денег.");hud();})
+ ]);
+}
+function casino(){
+ openPanel("🎰 Казино","Игровая валюта. Победа приносит x2 ставки.",[
+ ...[
+  [250,40],[450,30],[650,25],[1000,10]
+ ].map(([bet,chance])=>button("Поставить "+bet+" ₽ — шанс "+chance+"%",()=>{
+  if(money<bet){say("Не хватает игровой валюты.");return;}
+  money-=bet;
+  if(Math.random()*100<chance){money+=bet*2;say("Победа! Ты выиграл "+bet*2+" ₽");}
+  else say("В этот раз не повезло. Ставка потеряна.");
+  hud();
+ }))
+ ]);
+}
+function townHall(){
+ if(questDone){say("Задание уже выполнено.");return;}
+ openPanel("🏛 Ратуша","Выполни простое задание и получи 150 ₽.",[
+ button("Получить награду",()=>{
+  if(!questDone){questDone=true;money+=150;hud();say("Задание выполнено! +150 ₽");}
+  closePanel();
+ })
+ ]);
+}
 function enterHome(){
  indoors=true;
- world.visible=false;
- homeInterior.visible=true;
- player.position.set(100,0,102);
- document.getElementById("place").textContent="Дом";
- say("Ты дома! Подойди к мебели и нажми «Действие».");
- camera.position.set(100,5,110);
+ world.visible=false;inside.visible=true;
+ player.position.set(100,0,101);
+ camera.position.set(100,8,111);
+ say("Ты вошёл домой.");
 }
 function leaveHome(){
  indoors=false;
- world.visible=true;
- homeInterior.visible=false;
- player.position.set(-13,0,-7);
- document.getElementById("place").textContent="Деревня";
+ inside.visible=false;world.visible=true;
+ player.position.set(-18,0,-5);
  say("Ты вышел из дома.");
 }
-
-window.interact=()=>{
+function interact(){
+ if(panelOpen)return;
  if(indoors){
-  const x=player.position.x-100;
-  const z=player.position.z-100;
-
-  if(Math.hypot(x+4,z-3)<2.5){
-   openModal("🛏 Кровать","Отдохнуть и восстановить силы?",[
-    {label:"Поспать",action:()=>{
-     energy=100;happy=Math.min(100,happy+15);
-     say("Ты хорошо выспался!");updateHUD();closeModal();
-    }}
+  const x=player.position.x-100,z=player.position.z-100;
+  // Дверь
+  if(z>4.3&&Math.abs(x)<2.8){leaveHome();return;}
+  let near=null,dist=Infinity;
+  for(const f of furniture){
+   const d=Math.hypot(x-f.x,z-f.z);
+   if(d<dist){dist=d;near=f;}
+  }
+  if(!near||dist>3){say("Подойди ближе к мебели или двери.");return;}
+  if(near.name==="Кровать"){
+   openPanel("🛏 Кровать","Поспать и восстановить силы?",[
+    button("Поспать",()=>{energy=100;hunger=Math.max(0,hunger-5);happy=Math.min(100,happy+15);hud();say("Ты хорошо отдохнул!");closePanel();})
    ]);
-   return;
-  }
-
-  if(Math.hypot(x-3,z+1)<2.5){
-   openModal("📺 Телевизор","Посмотреть телевизор?",[
-    {label:"Посмотреть",action:()=>{
-     happy=Math.min(100,happy+15);
-     say("Ты посмотрел телевизор.");updateHUD();closeModal();
-    }}
+  }else if(near.name==="Телевизор"){
+   openPanel("📺 Телевизор","Посмотреть передачу?",[
+    button("Смотреть",()=>{happy=Math.min(100,happy+15);hud();say("Настроение улучшилось!");closePanel();})
    ]);
-   return;
-  }
-
-  if(Math.hypot(x-4,z-4)<2.5){
-   openModal("🍳 Кухня","Ты на кухне.",[
-    {label:"Приготовить еду",action:()=>{
-     if(spend(50)){
-      hunger=Math.min(100,hunger+30);
-      say("Ты приготовил обед!");updateHUD();
-     }
-     closeModal();
-    }}
+  }else if(near.name==="Холодильник"){
+   openPanel("🧊 Холодильник","Взять еду за 100 ₽?",[
+    button("Взять еду",()=>{if(money>=100){money-=100;hunger=Math.min(100,hunger+35);hud();say("Ты поел.");}else say("Не хватает денег.");closePanel();})
    ]);
-   return;
+  }else{
+   say(near.name+" — уютная мебель.");
   }
-
-  if(z>5.5){
-   leaveHome();return;
-  }
-
-  say("Рядом нет мебели для взаимодействия.");
   return;
  }
 
+ // ВАЖНО: определяем ближайшее здание и проверяем радиус.
+ // Казино не откроется, если игрок стоит возле другого здания.
  let nearest=null,best=Infinity;
  for(const b of buildings){
   const d=Math.hypot(player.position.x-b.x,player.position.z-b.z);
-  if(d<best){best=d;nearest=b}
+  if(d<best){best=d;nearest=b;}
  }
- if(best>9){say("Подойди ближе к зданию.");return}
-
- if(nearest.name==="Дом"){
-  enterHome();return;
+ if(!nearest||best>7){say("Подойди к зданию поближе.");return;}
+ switch(nearest.name){
+  case "Дом":enterHome();break;
+  case "Магазин":shop();break;
+  case "Ратуша":townHall();break;
+  case "Казино":casino();break;
  }
- if(nearest.name==="Ратуша"){
-  openModal("🏛 Ратуша","Помоги деревне! Награда — 150 ₽.",[
-   {label:"Выполнить задание",action:()=>{
-    if(!questDone){
-     money+=150;questDone=true;
-     say("Задание выполнено! +150 ₽");updateHUD();
-    }else say("Задание уже выполнено.");
-    closeModal();
-   }}
-  ]);
-  return;
+}
+window.interact=interact;
+window.work=work;window.eat=eat;window.rest=rest;
+window.closePanel=closePanel;
+
+// Управление
+const keys={};
+addEventListener("keydown",e=>{
+ keys[e.key.toLowerCase()]=true;
+ if(e.key.toLowerCase()==="e")interact();
+});
+addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+let joyX=0,joyY=0;
+const control=$("controls"),stick=$("stick");
+let pointer=null;
+control.addEventListener("pointerdown",e=>{
+ pointer=e.pointerId;control.setPointerCapture(pointer);moveJoy(e);
+});
+control.addEventListener("pointermove",e=>{if(pointer===e.pointerId)moveJoy(e);});
+function moveJoy(e){
+ const r=control.getBoundingClientRect();
+ let x=e.clientX-(r.left+r.width/2);
+ let y=e.clientY-(r.top+r.height/2);
+ const len=Math.hypot(x,y),max=43;
+ if(len>max){x=x/len*max;y=y/len*max;}
+ joyX=x/max;joyY=y/max;
+ stick.style.left=(37+x)+"px";stick.style.top=(37+y)+"px";
+}
+function resetJoy(){
+ pointer=null;joyX=0;joyY=0;
+ stick.style.left="37px";stick.style.top="37px";
+}
+control.addEventListener("pointerup",resetJoy);
+control.addEventListener("pointercancel",resetJoy);
+
+// Простые препятствия снаружи
+const obstacles=[
+ {x:-18,z:-12,r:5.5},{x:17,z:-13,r:5.5},
+ {x:-18,z:16,r:5.5},{x:18,z:17,r:5.5}
+];
+function canMove(x,z){
+ if(Math.abs(x)>48||Math.abs(z)>48)return false;
+ if(indoors){
+  const lx=x-100,lz=z-100;
+  if(Math.abs(lx)>5.2||Math.abs(lz)>5.2)return false;
+  // Не проходить сквозь стены, но оставить дверной проём на юге.
+  if(lz>4.7&&Math.abs(lx)>2.5)return false;
+  return true;
  }
- if(nearest.name==="Магазин"){shop();return}
- if(nearest.name==="Казино"){casino();return}
-};
+ for(const o of obstacles){
+  if(Math.hypot(x-o.x,z-o.z)<o.r)return false;
+ }
+ return true;
+}
 
-// -------------------------
-// АНИМАЦИЯ И КАМЕРА
-// -------------------------
-
+// Камера и анимация
 const clock=new THREE.Clock();
-
+let walkTime=0;
 function animate(){
  requestAnimationFrame(animate);
  const dt=Math.min(clock.getDelta(),.05);
-
- let dx=joyX+(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);
- let dz=joyY+(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
- const length=Math.hypot(dx,dz);
- if(length>1){dx/=length;dz/=length}
-
- const moving=length>.08;
-
- if(moving){
-  player.position.x+=dx*7*dt;
-  player.position.z+=dz*7*dt;
-  player.rotation.y=Math.atan2(dx,dz);
-  energy=Math.max(0,energy-.35*dt);
-
-  const swing=Math.sin(performance.now()*.012)*.65;
-  leftLeg.rotation.x=swing;
-  rightLeg.rotation.x=-swing;
-  leftArm.rotation.x=-swing*.65;
-  rightArm.rotation.x=swing*.65;
+ let mx=0,mz=0;
+ if(keys.w||keys.arrowup)mz-=1;
+ if(keys.s||keys.arrowdown)mz+=1;
+ if(keys.a||keys.arrowleft)mx-=1;
+ if(keys.d||keys.arrowright)mx+=1;
+ mx+=joyX;mz+=joyY;
+ const len=Math.hypot(mx,mz);
+ if(len>1){mx/=len;mz/=len;}
+ if(!panelOpen&&len>.05&&energy>0){
+  const speed=indoors?3:5;
+  const nx=player.position.x+mx*speed*dt;
+  const nz=player.position.z+mz*speed*dt;
+  if(canMove(nx,player.position.z))player.position.x=nx;
+  if(canMove(player.position.x,nz))player.position.z=nz;
+  energy=Math.max(0,energy-dt*.65);
+  happy=Math.min(100,happy+dt*.04);
+  walkTime+=dt*9;
+  armL.rotation.x=Math.sin(walkTime)*.55;
+  armR.rotation.x=-Math.sin(walkTime)*.55;
+  player.rotation.y=Math.atan2(mx,mz);
  }else{
-  leftLeg.rotation.x*=.8;
-  rightLeg.rotation.x*=.8;
-  leftArm.rotation.x*=.8;
-  rightArm.rotation.x*=.8;
+  armL.rotation.x*=.85;armR.rotation.x*=.85;
  }
-
  if(indoors){
-  player.position.x=THREE.MathUtils.clamp(player.position.x,92,108);
-  player.position.z=THREE.MathUtils.clamp(player.position.z,92,108);
+  camera.position.lerp(new THREE.Vector3(player.position.x,7,player.position.z+10),.08);
  }else{
-  player.position.x=THREE.MathUtils.clamp(player.position.x,-53,53);
-  player.position.z=THREE.MathUtils.clamp(player.position.z,-53,53);
+  camera.position.lerp(new THREE.Vector3(player.position.x,8,player.position.z+11),.08);
  }
-
- const target=new THREE.Vector3(
-  player.position.x,
-  player.position.y+5,
-  player.position.z+8
- );
- camera.position.lerp(target,1-Math.pow(.001,dt));
- camera.lookAt(player.position.x,player.position.y+1.3,player.position.z);
-
- updateHUD();
+ camera.lookAt(player.position.x,1.5,player.position.z);
  renderer.render(scene,camera);
+ hudTimer+=dt;
+ if(hudTimer>1){hud();hudTimer=0;}
 }
-animate();
-
-// Расход голода
+let hudTimer=0;
 setInterval(()=>{
- hunger=Math.max(0,hunger-.3);
- if(hunger===0)energy=Math.max(0,energy-1);
- updateHUD();
+ hunger=Math.max(0,hunger-.4);
+ if(hunger===0)energy=Math.max(0,energy-.7);
 },5000);
 
-// Начальное положение камеры
-camera.position.set(0,6,13);
-camera.lookAt(0,1,5);
+hud();
+animate();
 
-window.addEventListener("resize",()=>{
+addEventListener("resize",()=>{
  camera.aspect=innerWidth/innerHeight;
  camera.updateProjectionMatrix();
  renderer.setSize(innerWidth,innerHeight);
 });
-
-homeInterior.visible=false;
-updateHUD();
 </script>
 </body>
 </html>
