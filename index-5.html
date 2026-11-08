@@ -1,70 +1,180 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Печегор</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Печегор — новая версия</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#17291e;color:#fff;font-family:Arial,sans-serif}
-header{padding:14px 18px;background:#28563a;display:flex;justify-content:space-between;gap:10px;position:sticky;top:0}
-main{max-width:760px;margin:auto;padding:14px}.panel{background:#28563a;padding:15px;margin:12px 0;border-radius:16px}
-h1,h2,h3,p{margin-top:0}button{padding:11px 14px;margin:4px;border:0;border-radius:10px;background:#91ce75;color:#16301d;font-weight:bold;font-size:15px}
-button:active{transform:scale(.97)}#scene{height:260px;position:relative;overflow:hidden;border-radius:13px;background:linear-gradient(#8ac9e9 0 58%,#6ca75a 58%)}
-#house{position:absolute;bottom:55px;left:34%;width:135px;height:105px;background:#e8d4ad;border:3px solid #795c43}
-#roof{position:absolute;bottom:158px;left:29%;width:0;height:0;border-left:78px solid transparent;border-right:78px solid transparent;border-bottom:65px solid #914c3b}
-#door{position:absolute;bottom:0;left:48px;width:35px;height:62px;background:#79513b}
-#window{position:absolute;top:22px;right:15px;width:32px;height:30px;background:#9de5ef;border:3px solid #795c43}
-#person{position:absolute;bottom:34px;left:48%;font-size:38px;transition:left .2s}
-#tree{position:absolute;bottom:48px;left:8%;font-size:55px}#tree2{position:absolute;bottom:48px;right:7%;font-size:55px}
-.stat{display:flex;justify-content:space-between;margin-top:10px}.bar{height:12px;background:#526457;border-radius:20px;overflow:hidden}.fill{height:100%;background:#b4e77d;width:80%}
-.actions{display:flex;flex-wrap:wrap;gap:4px}.muted{color:#d5e5d7;font-size:13px}
+*{box-sizing:border-box}
+body{margin:0;background:#182b20;color:white;font-family:Arial}
+header{background:#285b3b;padding:16px;display:flex;justify-content:space-between;position:sticky;top:0}
+main{max-width:800px;margin:auto;padding:12px}
+.panel{background:#2c5038;padding:15px;border-radius:15px;margin:12px 0}
+button{border:0;border-radius:10px;padding:12px;margin:4px;background:#a5dc80;color:#193522;font-weight:bold;font-size:15px}
+button:active{transform:scale(.96)}
+#world{height:280px;position:relative;overflow:hidden;border-radius:12px;background:linear-gradient(#91cdec 0 58%,#69a85c 58%)}
+#house{position:absolute;bottom:55px;left:34%;width:140px;height:105px;background:#e8d4ad;border:3px solid #785a43}
+#roof{position:absolute;bottom:158px;left:28%;border-left:85px solid transparent;border-right:85px solid transparent;border-bottom:65px solid #934c3d}
+#door{position:absolute;bottom:0;left:50px;width:35px;height:60px;background:#79513b}
+#window{position:absolute;top:20px;right:15px;width:35px;height:32px;background:#9de7ed;border:3px solid #79513b}
+#hero{position:absolute;bottom:28px;left:48%;font-size:42px;transition:left .2s}
+.tree{position:absolute;bottom:42px;font-size:55px}
+.stat{margin:12px 0}
+.statline{display:flex;justify-content:space-between}
+.bar{height:13px;background:#536858;border-radius:20px;overflow:hidden}
+.fill{height:100%;background:#b8e77d;width:80%;transition:width .3s}
+.actions{display:flex;flex-wrap:wrap}
+#message{min-height:24px;color:#ffe8a0}
 </style>
 </head>
 <body>
-<header><b>🏡 ПЕЧЕГОР</b><b id="money">💰 1250 игровых ₽</b></header>
+<header>
+<b>🏡 ПЕЧЕГОР</b>
+<b id="money">💰 1250 ₽</b>
+</header>
 <main>
-<section class="panel">
-<h2>Твой дом и двор</h2>
-<div id="scene"><div id="tree">🌳</div><div id="tree2">🌳</div><div id="roof"></div><div id="house"><div id="door"></div><div id="window"></div></div><div id="person">🧍</div></div>
-<p class="muted">Передвигай персонажа кнопками внизу.</p>
-</section>
-<section class="panel">
-<h3>Потребности</h3>
-<div class="stat"><span>🍔 Сытость</span><b id="foodNum">80%</b></div><div class="bar"><div class="fill" id="food"></div></div>
-<div class="stat"><span>⚡ Энергия</span><b id="energyNum">86%</b></div><div class="bar"><div class="fill" id="energy"></div></div>
-<div class="stat"><span>😊 Настроение</span><b id="moodNum">90%</b></div><div class="bar"><div class="fill" id="mood"></div></div>
-</section>
-<section class="panel"><h3>Действия</h3><div class="actions">
-<button onclick="shop()">🛒 Купить еду · 80 ₽</button><button onclick="work()">💼 Подработка +100 ₽</button>
-<button onclick="rest()">🛏 Отдохнуть</button><button onclick="toy()">🧸 Игрушка · 150 ₽</button>
-<button onclick="garden()">🌼 Ухаживать за садом</button>
-</div></section>
-<section class="panel"><h3>🎪 Бесплатная ярмарка удачи</h3>
-<p class="muted">Один бесплатный розыгрыш за нажатие. Только игровые рубли, без покупок и обмена на реальные деньги.</p>
-<button onclick="fair()">🎁 Получить приз</button>
-</section>
-<section class="panel"><h3>🚶 Управление персонажем</h3>
-<button onclick="move(-8)">◀ Влево</button><button onclick="move(8)">Вправо ▶</button>
-</section>
-<section class="panel"><b id="message">Добро пожаловать в Печегор!</b></section>
+<div class="panel">
+<h2>🏠 Мой дом</h2>
+<div id="world">
+<div class="tree" style="left:5%">🌳</div>
+<div class="tree" style="right:5%">🌳</div>
+<div id="roof"></div>
+<div id="house">
+<div id="door"></div>
+<div id="window"></div>
+</div>
+<div id="hero">🧍</div>
+</div>
+</div>
+
+<div class="panel">
+<h3>❤️ Состояние персонажа</h3>
+<div class="stat">
+<div class="statline"><span>🍔 Сытость</span><b id="foodText">80%</b></div>
+<div class="bar"><div class="fill" id="foodBar"></div></div>
+</div>
+<div class="stat">
+<div class="statline"><span>⚡ Энергия</span><b id="energyText">86%</b></div>
+<div class="bar"><div class="fill" id="energyBar"></div></div>
+</div>
+<div class="stat">
+<div class="statline"><span>😊 Настроение</span><b id="moodText">90%</b></div>
+<div class="bar"><div class="fill" id="moodBar"></div></div>
+</div>
+</div>
+
+<div class="panel">
+<h3>🛒 Магазин</h3>
+<div class="actions">
+<button onclick="buyFood()">🥪 Купить еду — 80 ₽</button>
+<button onclick="buyToy()">🧸 Купить игрушку — 150 ₽</button>
+<button onclick="buyPlant()">🌻 Купить цветок — 100 ₽</button>
+</div>
+</div>
+
+<div class="panel">
+<h3>💼 Работа</h3>
+<p>Зарабатывай игровые деньги!</p>
+<button onclick="work()">Работать (+100 ₽)</button>
+</div>
+
+<div class="panel">
+<h3>🏡 Дом и отдых</h3>
+<button onclick="sleep()">🛏 Спать</button>
+<button onclick="garden()">🌱 Ухаживать за садом</button>
+<button onclick="play()">🎮 Играть</button>
+</div>
+
+<div class="panel">
+<h3>🚶 Прогулка</h3>
+<button onclick="move(-10)">◀ Влево</button>
+<button onclick="move(10)">Вправо ▶</button>
+</div>
+
+<div class="panel">
+<h3>🎪 Ярмарка удачи</h3>
+<p>Вход бесплатный! Только игровые рубли, без реальных денег.</p>
+<button onclick="fair()">🎁 Получить бесплатный приз</button>
+<p id="fairResult"></p>
+</div>
+
+<div class="panel">
+<h3>📢 Новости Печегора</h3>
+<p id="message">Добро пожаловать в Печегор!</p>
+</div>
 </main>
+
 <script>
-let money=1250,food=80,energy=86,mood=90;
+let money=1250;
+let food=80,energy=86,mood=90;
+let position=48;
+
 function update(){
- document.getElementById('money').textContent='💰 '+money+' игровых ₽';
- for(const [id,val] of [['food',food],['energy',energy],['mood',mood]]){
-  document.getElementById(id).style.width=val+'%';
-  document.getElementById(id+'Num').textContent=val+'%';
+ document.getElementById("money").textContent="💰 "+money+" ₽";
+ for(let [name,value] of [
+ ["food",food],["energy",energy],["mood",mood]
+ ]){
+  document.getElementById(name+"Bar").style.width=value+"%";
+  document.getElementById(name+"Text").textContent=value+"%";
  }
 }
-function say(t){document.getElementById('message').textContent=t}
-function shop(){if(money<80)return say('Не хватает игровых рублей!');money-=80;food=Math.min(100,food+35);update();say('Продукты куплены. Сытость восстановлена!')}
-function work(){money+=100;energy=Math.max(0,energy-9);food=Math.max(0,food-4);update();say('Ты заработал 100 игровых рублей!')}
-function rest(){energy=Math.min(100,energy+32);mood=Math.min(100,mood+8);update();say('Ты отдохнул и восстановил энергию!')}
-function toy(){if(money<150)return say('Не хватает игровых рублей!');money-=150;mood=Math.min(100,mood+20);update();say('Игрушка куплена. Настроение улучшилось!')}
-function garden(){mood=Math.min(100,mood+12);energy=Math.max(0,energy-4);update();say('Ты ухаживал за садом!')}
-function fair(){let r=Math.random(),prize=r<.40?250:r<.65?500:r<.80?1000:150;money+=prize;mood=Math.min(100,mood+5);update();say('🎉 Твой бесплатный приз: '+prize+' игровых рублей!')}
-function move(n){let p=document.getElementById('person'),x=parseFloat(p.style.left)||48;p.style.left=Math.max(1,Math.min(90,x+n))+'%'}
+function say(text){
+ document.getElementById("message").textContent=text;
+}
+function buyFood(){
+ if(money<80)return say("Не хватает денег!");
+ money-=80;food=Math.min(100,food+35);
+ update();say("🥪 Ты купил продукты!");
+}
+function buyToy(){
+ if(money<150)return say("Не хватает денег!");
+ money-=150;mood=Math.min(100,mood+20);
+ update();say("🧸 Новая игрушка куплена!");
+}
+function buyPlant(){
+ if(money<100)return say("Не хватает денег!");
+ money-=100;mood=Math.min(100,mood+12);
+ update();say("🌻 Цветок украшает твой двор!");
+}
+function work(){
+ money+=100;
+ energy=Math.max(0,energy-10);
+ food=Math.max(0,food-5);
+ update();say("💼 Ты заработал 100 игровых рублей!");
+}
+function sleep(){
+ energy=Math.min(100,energy+35);
+ mood=Math.min(100,mood+10);
+ update();say("🛏 Ты хорошо отдохнул!");
+}
+function garden(){
+ mood=Math.min(100,mood+15);
+ energy=Math.max(0,energy-5);
+ update();say("🌱 Сад стал красивее!");
+}
+function play(){
+ mood=Math.min(100,mood+18);
+ energy=Math.max(0,energy-7);
+ update();say("🎮 Ты весело провёл время!");
+}
+function move(n){
+ position=Math.max(1,Math.min(90,position+n));
+ document.getElementById("hero").style.left=position+"%";
+}
+function fair(){
+ let r=Math.random(),prize;
+ if(r<.40)prize=250;
+ else if(r<.65)prize=500;
+ else if(r<.80)prize=1000;
+ else prize=150;
+ money+=prize;
+ mood=Math.min(100,mood+5);
+ update();
+ document.getElementById("fairResult").textContent=
+ "🎉 Твой приз: "+prize+" игровых рублей!";
+ say("Поздравляем с призом!");
+}
 update();
 </script>
 </body>
