@@ -1,145 +1,53 @@
+import random
 
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hamster Clicker</title>
-<style>
-body {
-  margin: 0;
-  background: linear-gradient(135deg,#25144c,#7046a5);
-  color: white;
-  font-family: Arial;
-  text-align: center;
-  padding: 25px 10px;
-}
-h1 { color: #ffd65c; }
-.stats {
-  background: #ffffff20;
-  border-radius: 18px;
-  padding: 15px;
-  margin: 15px auto;
-  max-width: 350px;
-}
-#hamster {
-  font-size: 120px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: transform .1s;
-}
-#hamster:active { transform: scale(.85); }
-button {
-  border: none;
-  border-radius: 14px;
-  padding: 13px 20px;
-  margin: 6px;
-  font-size: 17px;
-  font-weight: bold;
-  cursor: pointer;
-  background: #ffc94d;
-  color: #39214f;
-}
-.shop {
-  background: #ffffff20;
-  border-radius: 18px;
-  padding: 15px;
-  max-width: 350px;
-  margin: 20px auto;
-}
-.bar {
-  background: #555;
-  border-radius: 20px;
-  overflow: hidden;
-  height: 15px;
-}
-#energyBar {
-  background: #ffbd35;
-  width: 100%;
-  height: 100%;
-}
-</style>
-</head>
-<body>
+health = 10
+coins = 20
+wood = 5
+dirt = 0
+stone = 0
 
-<h1>🐹 HAMSTER CLICKER</h1>
+print("⛏️ Добро пожаловать в Копатель Онлайн!")
 
-<div class="stats">
-  <h2>🪙 Монеты: <span id="coins">0</span></h2>
-  <h3>👆 За тап: <span id="power">1</span></h3>
-  <h3>⚡ Энергия: <span id="energy">1000</span></h3>
-  <div class="bar">
-    <div id="energyBar"></div>
-  </div>
-</div>
+while health > 0:
+    print("\nЧто ты хочешь сделать?")
+    print("1 — Копать землю")
+    print("2 — Рубить дерево")
+    print("3 — Построить дом")
+    print("4 — Посмотреть инвентарь")
+    print("0 — Выйти")
 
-<button id="hamster">🐹</button>
-<p>Нажимай на хомячка!</p>
+    choice = input("> ")
 
-<div class="shop">
-  <h2>🛒 МАГАЗИН</h2>
-  <button onclick="upgrade()">👆 Улучшить тап (50)</button>
-  <br>
-  <button onclick="buyEnergy()">⚡ Купить энергию (100)</button>
-</div>
+    if choice == "1":
+        found = random.randint(1, 4)
+        dirt += found
+        coins += random.randint(0, 2)
+        print(f"⛏️ Ты выкопал {found} блоков земли!")
 
-<script>
-let coins = Number(localStorage.getItem("coins")) || 0;
-let power = Number(localStorage.getItem("power")) || 1;
-let energy = Number(localStorage.getItem("energy")) || 1000;
-let maxEnergy = 1000;
-let cost = Number(localStorage.getItem("cost")) || 50;
+    elif choice == "2":
+        found = random.randint(1, 3)
+        wood += found
+        print(f"🪓 Ты получил {found} дерева!")
 
-const $ = id => document.getElementById(id);
+    elif choice == "3":
+        if wood >= 10 and dirt >= 5:
+            wood -= 10
+            dirt -= 5
+            print("🏠 Ты построил дом! Поздравляем!")
+        else:
+            print("❌ Недостаточно ресурсов для строительства дома.")
 
-function save() {
-  localStorage.setItem("coins", coins);
-  localStorage.setItem("power", power);
-  localStorage.setItem("energy", energy);
-  localStorage.setItem("cost", cost);
-}
+    elif choice == "4":
+        print("\n🎒 Инвентарь:")
+        print(f"❤️ Здоровье: {health}/10")
+        print(f"🪙 Монеты: {coins}")
+        print(f"🪵 Дерево: {wood}")
+        print(f"🟫 Земля: {dirt}")
+        print(f"🪨 Камень: {stone}")
 
-function update() {
-  $("coins").textContent = coins;
-  $("power").textContent = power;
-  $("energy").textContent = energy;
-  $("energyBar").style.width =
-    (energy / maxEnergy * 100) + "%";
-  save();
-}
+    elif choice == "0":
+        print("👋 Спасибо за игру!")
+        break
 
-$("hamster").onclick = function() {
-  if (energy < 1) return;
-  coins += power;
-  energy--;
-  update();
-};
-
-function upgrade() {
-  if (coins < cost) return;
-  coins -= cost;
-  power++;
-  cost = Math.ceil(cost * 1.6);
-  update();
-}
-
-function buyEnergy() {
-  if (coins < 100) return;
-  coins -= 100;
-  energy = Math.min(maxEnergy, energy + 250);
-  update();
-}
-
-setInterval(() => {
-  if (energy < maxEnergy) {
-    energy = Math.min(maxEnergy, energy + 2);
-    update();
-  }
-}, 1000);
-
-update();
-</script>
-
-</body>
-</html>
+    else:
+        print("❓ Неизвестная команда!")
